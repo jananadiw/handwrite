@@ -1,8 +1,8 @@
 # Decisions
 
-## 2026-06-04: Header Font
+## 2026-06-04: Vellum & Indigo Design System
 
-- Decision: Use Cormorant from `next/font/google` for the home page `h1`.
-- Reason: The product name should use the requested Google Font while keeping Next.js font optimization.
-- Impact: The font is scoped to the header instead of changing the global body font.
-- Revisit: If broader brand typography or multiple heading styles are introduced.
+- Decision: Use Tailwind theme tokens for the Vellum & Indigo palette, with Cormorant Garamond for display/type previews and DM Sans for functional UI.
+- Reason: The site now has a broader brand system instead of a single styled header.
+- Impact: Page styling should use Tailwind token classes rather than ad hoc CSS.
+- Revisit: If a component library or multiple brand themes are introduced.
