@@ -1,50 +1,47 @@
 const flow = [
   {
-    label: "My Handwriting",
-    detail: ".jpg",
+    label: "my handwriting.jpg",
+    width: "sm:w-[201px]",
   },
   {
-    label: "Let AI do the work",
-    detail: "",
-  },
-  {
-    label: "And Now I get a font!",
-    detail: ".ttf",
+    label: "my font.ttf",
+    width: "sm:w-[151px]",
   },
 ];
 
 export default function Home() {
   return (
-    <main className="grid min-h-screen place-items-center bg-stone px-5 text-ink">
-      <section className="flex w-full max-w-4xl flex-col items-center text-center">
-        <h1 className="font-serif text-6xl font-light tracking-normal text-ink sm:text-7xl">
-          HandWrite
-        </h1>
+    <main className="paper-grid flex min-h-screen items-center justify-center overflow-hidden px-5 py-20 text-ink sm:px-24">
+      <section className="flex w-full max-w-[1248px] flex-col items-center gap-14 text-center">
+        <div className="flex w-full flex-col items-center gap-[18px]">
+          <h1 className="font-serif text-6xl font-light leading-none tracking-normal text-ink sm:text-8xl">
+            HandWrite
+          </h1>
 
-        <p className="mt-4 max-w-xl text-lg font-light leading-8 text-muted sm:text-xl">
-          Turn your beautiful handwriting into a font.
-        </p>
+          <p className="text-lg font-light leading-8 text-muted sm:text-[22px] sm:leading-[34px]">
+            Turn your beautiful handwriting into a font.
+          </p>
+        </div>
 
         <div
-          className="mt-14 flex w-full max-w-3xl flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-center"
+          className="flex w-full flex-col items-stretch gap-[18px] sm:flex-row sm:items-center sm:justify-center"
           aria-label="HandWrite process"
         >
           {flow.map((step, index) => (
             <div
-              className="flex flex-col items-center gap-4 sm:flex-row"
+              className="flex flex-col items-center gap-[18px] sm:flex-row"
               key={step.label}
             >
-              <div className="w-full border border-indigo bg-linen px-8 py-5 sm:w-44">
-                <p className="font-serif text-xl font-light text-ink">
+              <div
+                className={`flex h-[104px] w-full shrink-0 items-center justify-center bg-periwinkle px-2 shadow-[0_2px_3px_rgba(0,0,0,0.2)] ${step.width}`}
+              >
+                <p className="whitespace-nowrap font-serif text-[22px] font-light leading-[34px] text-ink">
                   {step.label}
-                </p>
-                <p className="mt-2 text-sm font-medium text-indigo">
-                  {step.detail}
                 </p>
               </div>
               {index < flow.length - 1 ? (
                 <span
-                  className="font-serif text-3xl font-light text-indigo sm:-mx-1"
+                  className="font-serif text-[34px] font-light leading-[34px] text-indigo"
                   aria-hidden="true"
                 >
                   →
@@ -55,7 +52,7 @@ export default function Home() {
         </div>
 
         <a
-          className="mt-16 border border-indigo bg-indigo px-12 py-4 text-sm font-medium text-stone shadow-sm shadow-indigo/20 hover:bg-ink"
+          className="flex h-14 w-[166px] items-center justify-center border border-indigo bg-indigo text-sm font-medium text-stone hover:bg-ink"
           href="/upload"
         >
           Start here

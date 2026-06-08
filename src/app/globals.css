@@ -12,3 +12,30 @@
     --font-sans: var(--font-dm-sans);
     --font-serif: var(--font-cormorant);
 }
+
+.paper-grid {
+    background-color: var(--color-stone);
+    background-image:
+        radial-gradient(
+            circle,
+            rgba(26, 25, 22, 0.13) 0.9px,
+            transparent 1.2px
+        ),
+        linear-gradient(rgba(61, 79, 138, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(61, 79, 138, 0.035) 1px, transparent 1px),
+        linear-gradient(
+            115deg,
+            rgba(255, 255, 255, 0.32),
+            rgba(232, 228, 220, 0.18)
+        );
+    background-position:
+        0 0,
+        16px 16px,
+        16px 16px,
+        0 0;
+    background-size:
+        32px 32px,
+        96px 96px,
+        96px 96px,
+        100% 100%;
+}
