@@ -1,37 +1,20 @@
 "use client";
 
-import Link from "next/link";
 import { useId, useRef, useState } from "react";
+import { AlphabetSample } from "./alphabet-sample";
+import { analyzePhoto } from "./analyze-photo";
+import { AnalysisSummary } from "./analysis-summary";
+import { PhotoDropZone } from "./photo-drop-zone";
+import { PhotoGuidelines } from "./photo-guidelines";
+import { UploadActions } from "./upload-actions";
+import { UploadState } from "./upload-state";
+import type { UploadStatus } from "./upload-types";
 import {
   MAX_SOURCE_IMAGE_BYTES,
   type NormalisedJpeg,
   normaliseToJpeg,
 } from "@/lib/images/normalise-to-jpeg";
-
-type UploadStatus = "idle" | "normalising" | "ready" | "error";
-
-const photoGuidelines = [
-  {
-    icon: "Aa",
-    title: "Write each letter 3-4 cm tall",
-    detail: "Use a black pen or marker on plain white paper",
-  },
-  {
-    icon: "A Z",
-    title: "Leave space between each letter",
-    detail: "Do not connect or touch adjacent letters",
-  },
-  {
-    icon: "☼",
-    title: "Shoot in good light, flat on a table",
-    detail: "No shadows, no angle - camera directly above",
-  },
-  {
-    icon: "×",
-    title: "No lined or grid paper",
-    detail: "Lines confuse the letter detection",
-  },
-];
+import type { AlphabetAnalysis } from "@/lib/extraction/schemas";
 
 export function UploadPhotoForm() {
   const inputId = useId();
@@ -40,12 +23,14 @@ export function UploadPhotoForm() {
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [normalisedPhoto, setNormalisedPhoto] =
     useState<NormalisedJpeg | null>(null);
+  const [analysis, setAnalysis] = useState<AlphabetAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function preparePhoto(file: File) {
     setStatus("normalising");
     setSourceFile(file);
     setNormalisedPhoto(null);
+    setAnalysis(null);
     setError(null);
 
     if (!isPhotoFile(file)) {
@@ -85,13 +70,38 @@ export function UploadPhotoForm() {
     handleFiles(event.dataTransfer.files);
   }
 
-  function handleContinue() {
+  async function handleContinue() {
     if (!normalisedPhoto) {
       inputRef.current?.click();
       return;
     }
 
-    // The future extraction API should receive normalisedPhoto.file.
+    setStatus("analyzing");
+    setAnalysis(null);
+    setError(null);
+
+    try {
+      const photoAnalysis = await analyzePhoto(normalisedPhoto.file);
+
+      if (!photoAnalysis.usable) {
+        setStatus("ready");
+        setError(
+          photoAnalysis.rejectReason ||
+            "That photo is not clear enough to generate a font.",
+        );
+        return;
+      }
+
+      setAnalysis(photoAnalysis);
+      setStatus("analyzed");
+    } catch (caughtError) {
+      setStatus("ready");
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "We could not analyze that photo. Try another clear photo.",
+      );
+    }
   }
 
   return (
@@ -110,52 +120,9 @@ export function UploadPhotoForm() {
             </p>
           </div>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-2">
-            {photoGuidelines.map((item) => (
-              <div
-                className="grid grid-cols-[40px_1fr] gap-3 bg-linen px-4 py-4"
-                key={item.title}
-              >
-                <div className="flex h-10 w-10 items-center justify-center bg-stone font-serif text-lg font-light text-indigo">
-                  {item.icon}
-                </div>
-                <div>
-                  <h2 className="text-sm font-medium leading-5 text-ink">
-                    {item.title}
-                  </h2>
-                  <p className="mt-1 text-sm font-light leading-5 text-muted">
-                    {item.detail}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 bg-linen px-5 py-6 text-center">
-            <p className="font-serif text-5xl font-light leading-none tracking-normal text-ink sm:text-6xl">
-              A B C D
-            </p>
-            <p className="mt-3 text-sm font-medium leading-6 text-muted">
-              spaced · large · black ink · white paper
-            </p>
-          </div>
-
-          <label
-            className="mt-6 flex min-h-[190px] w-full cursor-pointer flex-col items-center justify-center border border-indigo bg-stone px-6 py-10 text-center transition hover:bg-periwinkle"
-            htmlFor={inputId}
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={handleDrop}
-          >
-            <span className="flex h-14 w-14 items-center justify-center bg-linen font-serif text-4xl font-light text-indigo">
-              ↑
-            </span>
-            <span className="mt-5 text-xl font-medium leading-7 text-ink">
-              Drop your photo here or browse
-            </span>
-            <span className="mt-2 text-sm font-medium text-muted">
-              jpg, png, heic, or any phone image
-            </span>
-          </label>
+          <PhotoGuidelines />
+          <AlphabetSample />
+          <PhotoDropZone inputId={inputId} onDrop={handleDrop} />
 
           <input
             accept="image/*"
@@ -167,10 +134,13 @@ export function UploadPhotoForm() {
           />
 
           <UploadState
+            analysis={analysis}
             file={sourceFile}
             normalisedPhoto={normalisedPhoto}
             status={status}
           />
+
+          {analysis ? <AnalysisSummary analysis={analysis} /> : null}
 
           {error ? (
             <p className="mt-4 text-sm font-medium leading-6 text-indigo">
@@ -179,22 +149,11 @@ export function UploadPhotoForm() {
           ) : null}
         </div>
 
-        <div className="grid grid-cols-2 gap-5">
-          <Link
-            className="flex h-14 items-center justify-center border border-indigo bg-stone text-sm font-medium text-ink hover:bg-linen"
-            href="/"
-          >
-            Back
-          </Link>
-          <button
-            className="flex h-14 items-center justify-center border border-indigo bg-indigo text-sm font-medium text-stone hover:bg-ink disabled:cursor-not-allowed disabled:border-muted disabled:bg-muted"
-            disabled={status === "normalising"}
-            onClick={handleContinue}
-            type="button"
-          >
-            {normalisedPhoto ? "Continue" : "Choose photo"}
-          </button>
-        </div>
+        <UploadActions
+          normalisedPhoto={normalisedPhoto}
+          onPrimaryAction={() => void handleContinue()}
+          status={status}
+        />
       </div>
     </section>
   );
@@ -202,47 +161,4 @@ export function UploadPhotoForm() {
 
 function isPhotoFile(file: File) {
   return file.type.startsWith("image/") || /\.(heic|heif)$/i.test(file.name);
-}
-
-function UploadState({
-  file,
-  normalisedPhoto,
-  status,
-}: {
-  file: File | null;
-  normalisedPhoto: NormalisedJpeg | null;
-  status: UploadStatus;
-}) {
-  if (!file) {
-    return null;
-  }
-
-  const progress = status === "normalising" ? "w-2/3" : "w-full";
-  const label =
-    status === "normalising"
-      ? "Preparing photo"
-      : normalisedPhoto
-        ? "Ready to generate"
-        : "Photo selected";
-
-  return (
-    <div className="mt-6 border border-indigo bg-stone px-4 py-4">
-      <div className="grid grid-cols-[56px_1fr] gap-4">
-        <div className="flex h-14 w-14 items-center justify-center bg-linen text-xs font-medium uppercase text-indigo">
-          jpg
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-base font-medium leading-6 text-ink">
-            {file.name}
-          </p>
-          <p className="mt-1 text-sm font-light leading-5 text-muted">
-            {label}
-          </p>
-        </div>
-      </div>
-      <div className="mt-4 h-1 bg-linen">
-        <div className={`h-full bg-indigo transition-all ${progress}`} />
-      </div>
-    </div>
-  );
 }
