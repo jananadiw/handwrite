@@ -5,7 +5,7 @@ import {
   GoogleGenAI,
   PartMediaResolutionLevel,
 } from "@google/genai";
-import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import { GEMINI_ANALYSIS_MODEL } from "@/lib/extraction/constants";
 import {
   compactAlphabetAnalysisSchema,
@@ -14,7 +14,7 @@ import {
 } from "@/lib/extraction/schemas";
 import { requireGeminiApiKey } from "@/lib/server/env";
 
-const compactAlphabetAnalysisJsonSchema = z.toJSONSchema(
+const compactAlphabetAnalysisJsonSchema = zodToJsonSchema(
   compactAlphabetAnalysisSchema,
 );
 

@@ -22,6 +22,8 @@ export function UploadState({
       ? "w-2/3"
       : status === "analyzing"
         ? "w-5/6"
+        : status === "generating"
+          ? "w-11/12"
         : "w-full";
   const label = getUploadStateLabel({ analysis, normalisedPhoto, status });
 
@@ -62,6 +64,14 @@ function getUploadStateLabel({
 
   if (status === "analyzing") {
     return "Analyzing letters";
+  }
+
+  if (status === "generating") {
+    return "Generating font";
+  }
+
+  if (status === "generated") {
+    return "Font ready";
   }
 
   if (analysis) {

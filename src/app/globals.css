@@ -16,26 +16,24 @@
 .paper-grid {
     background-color: var(--color-stone);
     background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='paperNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.18 0 0 0 0 0.16 0 0 0 0 0.12 0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23paperNoise)'/%3E%3C/svg%3E"),
         radial-gradient(
-            circle,
-            rgba(26, 25, 22, 0.13) 0.9px,
-            transparent 1.2px
+            circle at 50% 38%,
+            rgba(255, 255, 255, 0.34),
+            transparent 56%
         ),
-        linear-gradient(rgba(61, 79, 138, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(61, 79, 138, 0.035) 1px, transparent 1px),
         linear-gradient(
-            115deg,
-            rgba(255, 255, 255, 0.32),
-            rgba(232, 228, 220, 0.18)
+            135deg,
+            rgba(255, 255, 255, 0.22),
+            rgba(213, 205, 190, 0.24)
         );
+    background-blend-mode: multiply, screen, normal;
     background-position:
         0 0,
-        16px 16px,
-        16px 16px,
+        0 0,
         0 0;
     background-size:
-        32px 32px,
-        96px 96px,
-        96px 96px,
+        180px 180px,
+        100% 100%,
         100% 100%;
 }

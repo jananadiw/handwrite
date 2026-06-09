@@ -1,12 +1,17 @@
 import Link from "next/link";
+import type { GeneratedHandwritingFont } from "@/lib/font/generate-handwriting-font";
 import type { NormalisedJpeg } from "@/lib/images/normalise-to-jpeg";
 import type { UploadStatus } from "./upload-types";
 
 export function UploadActions({
+  generatedFont,
+  generatedFontUrl,
   normalisedPhoto,
   onPrimaryAction,
   status,
 }: {
+  generatedFont: GeneratedHandwritingFont | null;
+  generatedFontUrl: string | null;
   normalisedPhoto: NormalisedJpeg | null;
   onPrimaryAction: () => void;
   status: UploadStatus;
@@ -19,14 +24,28 @@ export function UploadActions({
       >
         Back
       </Link>
-      <button
-        className="flex h-14 items-center justify-center border border-indigo bg-indigo text-sm font-medium text-stone hover:bg-ink disabled:cursor-not-allowed disabled:border-muted disabled:bg-muted"
-        disabled={status === "normalising" || status === "analyzing"}
-        onClick={onPrimaryAction}
-        type="button"
-      >
-        {getPrimaryActionLabel({ normalisedPhoto, status })}
-      </button>
+      {status === "generated" && generatedFont && generatedFontUrl ? (
+        <a
+          className="flex h-14 items-center justify-center border border-indigo bg-indigo text-sm font-medium text-stone hover:bg-ink"
+          download={generatedFont.fileName}
+          href={generatedFontUrl}
+        >
+          Download .ttf
+        </a>
+      ) : (
+        <button
+          className="flex h-14 items-center justify-center border border-indigo bg-indigo text-sm font-medium text-stone hover:bg-ink disabled:cursor-not-allowed disabled:border-muted disabled:bg-muted"
+          disabled={
+            status === "normalising" ||
+            status === "analyzing" ||
+            status === "generating"
+          }
+          onClick={onPrimaryAction}
+          type="button"
+        >
+          {getPrimaryActionLabel({ normalisedPhoto, status })}
+        </button>
+      )}
     </div>
   );
 }
@@ -46,8 +65,12 @@ function getPrimaryActionLabel({
     return "Analyzing";
   }
 
+  if (status === "generating") {
+    return "Generating";
+  }
+
   if (normalisedPhoto) {
-    return "Analyze photo";
+    return status === "analyzed" ? "Generate font" : "Analyze photo";
   }
 
   return "Choose photo";

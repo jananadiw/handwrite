@@ -1,14 +1,19 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { AlphabetSample } from "./alphabet-sample";
 import { analyzePhoto } from "./analyze-photo";
 import { AnalysisSummary } from "./analysis-summary";
+import { FontReview } from "./font-review";
 import { PhotoDropZone } from "./photo-drop-zone";
 import { PhotoGuidelines } from "./photo-guidelines";
 import { UploadActions } from "./upload-actions";
 import { UploadState } from "./upload-state";
 import type { UploadStatus } from "./upload-types";
+import {
+  generateHandwritingFont,
+  type GeneratedHandwritingFont,
+} from "@/lib/font/generate-handwriting-font";
 import {
   MAX_SOURCE_IMAGE_BYTES,
   type NormalisedJpeg,
@@ -24,13 +29,28 @@ export function UploadPhotoForm() {
   const [normalisedPhoto, setNormalisedPhoto] =
     useState<NormalisedJpeg | null>(null);
   const [analysis, setAnalysis] = useState<AlphabetAnalysis | null>(null);
+  const [generatedFont, setGeneratedFont] =
+    useState<GeneratedHandwritingFont | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const generatedFontUrl = useMemo(
+    () => (generatedFont ? URL.createObjectURL(generatedFont.blob) : null),
+    [generatedFont],
+  );
+
+  useEffect(() => {
+    if (!generatedFontUrl) {
+      return;
+    }
+
+    return () => URL.revokeObjectURL(generatedFontUrl);
+  }, [generatedFontUrl]);
 
   async function preparePhoto(file: File) {
     setStatus("normalising");
     setSourceFile(file);
     setNormalisedPhoto(null);
     setAnalysis(null);
+    setGeneratedFont(null);
     setError(null);
 
     if (!isPhotoFile(file)) {
@@ -78,7 +98,9 @@ export function UploadPhotoForm() {
 
     setStatus("analyzing");
     setAnalysis(null);
+    setGeneratedFont(null);
     setError(null);
+    let reachedGeneration = false;
 
     try {
       const photoAnalysis = await analyzePhoto(normalisedPhoto.file);
@@ -93,13 +115,22 @@ export function UploadPhotoForm() {
       }
 
       setAnalysis(photoAnalysis);
-      setStatus("analyzed");
+      setStatus("generating");
+      reachedGeneration = true;
+
+      const font = await generateHandwritingFont({
+        analysis: photoAnalysis,
+        normalisedPhoto,
+      });
+
+      setGeneratedFont(font);
+      setStatus("generated");
     } catch (caughtError) {
-      setStatus("ready");
+      setStatus(reachedGeneration ? "analyzed" : "ready");
       setError(
         caughtError instanceof Error
           ? caughtError.message
-          : "We could not analyze that photo. Try another clear photo.",
+          : "We could not finish your font. Try another clear photo.",
       );
     }
   }
@@ -142,6 +173,13 @@ export function UploadPhotoForm() {
 
           {analysis ? <AnalysisSummary analysis={analysis} /> : null}
 
+          {status === "generated" && generatedFont && generatedFontUrl ? (
+            <FontReview
+              generatedFont={generatedFont}
+              fontUrl={generatedFontUrl}
+            />
+          ) : null}
+
           {error ? (
             <p className="mt-4 text-sm font-medium leading-6 text-indigo">
               {error}
@@ -150,6 +188,8 @@ export function UploadPhotoForm() {
         </div>
 
         <UploadActions
+          generatedFont={generatedFont}
+          generatedFontUrl={generatedFontUrl}
           normalisedPhoto={normalisedPhoto}
           onPrimaryAction={() => void handleContinue()}
           status={status}

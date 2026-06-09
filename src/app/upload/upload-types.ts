@@ -6,6 +6,8 @@ export type UploadStatus =
   | "ready"
   | "analyzing"
   | "analyzed"
+  | "generating"
+  | "generated"
   | "error";
 
 export type AnalyzeResponse =

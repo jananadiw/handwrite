@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v3";
 import {
   NORMALIZED_COORDINATE_MAX,
   SUPPORTED_LETTERS,
@@ -12,12 +12,8 @@ export const normalizedCoordinateSchema = z
   .max(NORMALIZED_COORDINATE_MAX);
 
 export const normalizedBoxSchema = z
-  .tuple([
-    normalizedCoordinateSchema,
-    normalizedCoordinateSchema,
-    normalizedCoordinateSchema,
-    normalizedCoordinateSchema,
-  ])
+  .array(normalizedCoordinateSchema)
+  .length(4)
   .describe("[ymin, xmin, ymax, xmax] in Gemini normalized 0..1000 space.");
 
 export const pointSchema = z.object({
