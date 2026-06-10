@@ -10,10 +10,8 @@ import { PhotoGuidelines } from "./photo-guidelines";
 import { UploadActions } from "./upload-actions";
 import { UploadState } from "./upload-state";
 import type { UploadStatus } from "./upload-types";
-import {
-  generateHandwritingFont,
-  type GeneratedHandwritingFont,
-} from "@/lib/font/generate-handwriting-font";
+import { generateHandwritingFontInWorker } from "@/lib/font/generate-handwriting-font-in-worker";
+import type { GeneratedHandwritingFont } from "@/lib/font/types";
 import {
   MAX_SOURCE_IMAGE_BYTES,
   type NormalisedJpeg,
@@ -118,7 +116,7 @@ export function UploadPhotoForm() {
       setStatus("generating");
       reachedGeneration = true;
 
-      const font = await generateHandwritingFont({
+      const font = await generateHandwritingFontInWorker({
         analysis: photoAnalysis,
         normalisedPhoto,
       });

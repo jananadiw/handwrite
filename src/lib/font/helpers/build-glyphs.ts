@@ -5,8 +5,23 @@ import {
   normalizedBoxToPixelRect,
   type LetterDetection,
 } from "@/lib/extraction/schemas";
-import { IMAGE_TRACE_OPTIONS, LOWERCASE_SCALE } from "@/lib/font/constants";
-import { createMaskCanvas, getInkBounds, padPixelRect } from "./ink-mask";
+import {
+  IMAGE_TRACE_OPTIONS,
+  LOWERCASE_SCALE,
+  MAX_GLYPH_INK_COVERAGE,
+  MIN_GLYPH_INK_COVERAGE,
+  MIN_GLYPH_INK_PIXELS,
+} from "@/lib/font/constants";
+import {
+  createFontCanvas,
+  getFontCanvasContext,
+} from "./canvas";
+import {
+  countInkPixels,
+  createMaskCanvas,
+  getInkBounds,
+  padPixelRect,
+} from "./ink-mask";
 import { getInkPathData, pathFromSvg, transformPath } from "./svg-paths";
 
 export function traceGlyph({
@@ -26,7 +41,7 @@ export function traceGlyph({
     imageHeight,
     imageWidth,
   });
-  const sourceContext = getCanvasContext(sourceCanvas);
+  const sourceContext = getFontCanvasContext(sourceCanvas);
   const sourceImageData = sourceContext.getImageData(
     0,
     0,
@@ -39,8 +54,22 @@ export function traceGlyph({
     return null;
   }
 
+  const inkPixels = countInkPixels(sourceImageData, inkBounds);
+  const inkArea =
+    (inkBounds.maxX - inkBounds.minX + 1) *
+    (inkBounds.maxY - inkBounds.minY + 1);
+  const inkCoverage = inkPixels / Math.max(inkArea, 1);
+
+  if (
+    inkPixels < MIN_GLYPH_INK_PIXELS ||
+    inkCoverage < MIN_GLYPH_INK_COVERAGE ||
+    inkCoverage > MAX_GLYPH_INK_COVERAGE
+  ) {
+    return null;
+  }
+
   const maskCanvas = createMaskCanvas(sourceCanvas, inkBounds);
-  const maskContext = getCanvasContext(maskCanvas);
+  const maskContext = getFontCanvasContext(maskCanvas);
   const svg = ImageTracer.imagedataToSVG(
     maskContext.getImageData(0, 0, maskCanvas.width, maskCanvas.height),
     IMAGE_TRACE_OPTIONS,
@@ -128,11 +157,9 @@ function createSourceCanvas({
     imageWidth,
     imageHeight,
   );
-  const sourceCanvas = document.createElement("canvas");
-  sourceCanvas.width = sourceRect.width;
-  sourceCanvas.height = sourceRect.height;
+  const sourceCanvas = createFontCanvas(sourceRect.width, sourceRect.height);
 
-  getCanvasContext(sourceCanvas).drawImage(
+  getFontCanvasContext(sourceCanvas).drawImage(
     imageBitmap,
     sourceRect.x,
     sourceRect.y,
@@ -145,14 +172,4 @@ function createSourceCanvas({
   );
 
   return sourceCanvas;
-}
-
-function getCanvasContext(canvas: HTMLCanvasElement) {
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-
-  if (!context) {
-    throw new Error("Canvas is unavailable.");
-  }
-
-  return context;
 }

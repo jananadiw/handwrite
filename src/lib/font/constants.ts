@@ -4,6 +4,9 @@ export const FONT_MIME_TYPE = "font/ttf";
 
 export const GLYPH_PADDING_RATIO = 0.28;
 export const MIN_GLYPH_PIXELS = 24;
+export const MIN_GLYPH_INK_PIXELS = 80;
+export const MIN_GLYPH_INK_COVERAGE = 0.015;
+export const MAX_GLYPH_INK_COVERAGE = 0.68;
 export const LOWERCASE_SCALE = 0.72;
 
 export const IMAGE_TRACE_OPTIONS = {

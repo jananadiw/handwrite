@@ -1,7 +1,7 @@
 const photoGuidelines = [
   {
     icon: "Aa",
-    title: "Write each letter 3-4 cm tall",
+    title: "Write uppercase and lowercase",
     detail: "Use a black pen or marker on plain white paper",
   },
   {

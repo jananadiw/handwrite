@@ -1,22 +1,20 @@
 import { GLYPH_PADDING_RATIO, MIN_GLYPH_PIXELS } from "@/lib/font/constants";
 import type { Bounds } from "@/lib/font/types";
 import type { PixelRect } from "@/lib/extraction/schemas";
+import {
+  createFontCanvas,
+  getFontCanvasContext,
+  type FontCanvas,
+} from "./canvas";
 
-export function createMaskCanvas(sourceCanvas: HTMLCanvasElement, bounds: Bounds) {
+export function createMaskCanvas(sourceCanvas: FontCanvas, bounds: Bounds) {
   const width = Math.max(MIN_GLYPH_PIXELS, bounds.maxX - bounds.minX + 1);
   const height = Math.max(MIN_GLYPH_PIXELS, bounds.maxY - bounds.minY + 1);
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-
-  if (!context) {
-    throw new Error("Canvas is unavailable.");
-  }
+  const canvas = createFontCanvas(width, height);
+  const context = getFontCanvasContext(canvas);
 
   context.drawImage(
-    sourceCanvas,
+    sourceCanvas as CanvasImageSource,
     bounds.minX,
     bounds.minY,
     bounds.maxX - bounds.minX + 1,
@@ -72,6 +70,25 @@ export function getInkBounds(imageData: ImageData): Bounds | null {
   return hasInk ? bounds : null;
 }
 
+export function countInkPixels(imageData: ImageData, bounds: Bounds) {
+  const pixels = imageData.data;
+  let inkPixels = 0;
+
+  for (let y = bounds.minY; y <= bounds.maxY; y += 1) {
+    for (let x = bounds.minX; x <= bounds.maxX; x += 1) {
+      const offset = (y * imageData.width + x) * 4;
+
+      if (!isInkPixel(pixels[offset], pixels[offset + 1], pixels[offset + 2])) {
+        continue;
+      }
+
+      inkPixels += 1;
+    }
+  }
+
+  return inkPixels;
+}
+
 export function padPixelRect(
   rect: PixelRect,
   imageWidth: number,
@@ -92,10 +109,14 @@ export function padPixelRect(
   };
 }
 
-function isInkPixel(red: number, green: number, blue: number) {
+export function isInkPixel(red: number, green: number, blue: number) {
   const lightness = (red + green + blue) / 3;
   const warmth = red - blue;
   const saturation = Math.max(red, green, blue) - Math.min(red, green, blue);
+
+  if (lightness < 145) {
+    return true;
+  }
 
   return lightness < 185 && warmth > 8 && saturation > 14;
 }

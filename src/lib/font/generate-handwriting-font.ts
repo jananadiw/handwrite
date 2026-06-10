@@ -1,5 +1,9 @@
 import * as opentype from "opentype.js";
-import { DEFAULT_FONT_METRICS } from "@/lib/extraction/constants";
+import {
+  DEFAULT_FONT_METRICS,
+  SUPPORTED_GLYPHS,
+  SUPPORTED_LETTERS,
+} from "@/lib/extraction/constants";
 import {
   FONT_FAMILY_NAME,
   FONT_FILE_NAME,
@@ -25,7 +29,7 @@ export async function generateHandwritingFont({
   normalisedPhoto,
 }: {
   analysis: AlphabetAnalysis;
-  normalisedPhoto: NormalisedJpeg;
+  normalisedPhoto: Pick<NormalisedJpeg, "blob" | "height" | "width">;
 }): Promise<GeneratedHandwritingFont> {
   const imageBitmap = await createImageBitmap(normalisedPhoto.blob);
 
@@ -68,7 +72,7 @@ function buildGlyphs({
 }: {
   analysis: AlphabetAnalysis;
   imageBitmap: ImageBitmap;
-  normalisedPhoto: NormalisedJpeg;
+  normalisedPhoto: Pick<NormalisedJpeg, "height" | "width">;
 }) {
   const glyphs: opentype.Glyph[] = [
     createEmptyGlyph({ name: ".notdef" }),
@@ -79,8 +83,15 @@ function buildGlyphs({
     }),
   ];
   const generatedLetters: string[] = [];
+  const detections = getBestDetections(analysis);
 
-  for (const [letter, detection] of getBestDetections(analysis)) {
+  for (const letter of SUPPORTED_GLYPHS) {
+    const detection = detections.get(letter);
+
+    if (!detection) {
+      continue;
+    }
+
     const glyph = traceGlyph({
       detection,
       imageBitmap,
@@ -93,8 +104,35 @@ function buildGlyphs({
     }
 
     glyphs.push(glyph);
-    glyphs.push(createLowercaseGlyph(letter, glyph.path, glyph.advanceWidth));
     generatedLetters.push(letter);
+  }
+
+  for (const uppercaseLetter of SUPPORTED_LETTERS) {
+    const lowercaseLetter = uppercaseLetter.toLowerCase();
+
+    if (
+      generatedLetters.includes(lowercaseLetter) ||
+      !generatedLetters.includes(uppercaseLetter)
+    ) {
+      continue;
+    }
+
+    const uppercaseGlyph = glyphs.find(
+      (glyph) => glyph.name === uppercaseLetter,
+    );
+
+    if (!uppercaseGlyph) {
+      continue;
+    }
+
+    glyphs.push(
+      createLowercaseGlyph(
+        uppercaseLetter,
+        uppercaseGlyph.path,
+        uppercaseGlyph.advanceWidth,
+      ),
+    );
+    generatedLetters.push(lowercaseLetter);
   }
 
   return { generatedLetters, glyphs };

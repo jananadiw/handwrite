@@ -6,7 +6,10 @@ import {
   PartMediaResolutionLevel,
 } from "@google/genai";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { GEMINI_ANALYSIS_MODEL } from "@/lib/extraction/constants";
+import {
+  GEMINI_ANALYSIS_MODEL,
+  SUPPORTED_LETTERS,
+} from "@/lib/extraction/constants";
 import {
   compactAlphabetAnalysisSchema,
   expandCompactAlphabetAnalysis,
@@ -19,12 +22,15 @@ const compactAlphabetAnalysisJsonSchema = zodToJsonSchema(
 );
 
 const analysisPrompt = `
-Analyze a freeform handwritten uppercase A-Z photo for font extraction.
+Analyze a freeform handwritten alphabet photo for font extraction.
+Detect both uppercase A-Z and lowercase a-z when present.
 Return JSON only. Boxes use [ymin,xmin,ymax,xmax], normalized 0..1000.
 Use compact letter keys: c=letter, b=box, q=confidence percent, i=issues.
 Omit i and globalIssues when empty. Mark usable false for blur, darkness,
-severe angle, many missing letters, touching letters, or unmappable layout.
+severe angle, many missing uppercase letters, touching letters, or unmappable layout.
 orientationDegrees is the clockwise rotation needed to make letters upright.
+When uppercase and lowercase are written as pairs, return separate boxes for
+each glyph, e.g. A and a are separate detections.
 `;
 
 const analysisResolutions = [
@@ -116,12 +122,23 @@ function isConfidentAnalysis(analysis: AlphabetAnalysis) {
     return false;
   }
 
-  const detectedLetters = new Set(analysis.letters.map((letter) => letter.char));
+  const detectedUppercaseLetters = new Set(
+    analysis.letters
+      .filter((letter) => isSupportedUppercaseLetter(letter.char))
+      .map((letter) => letter.char),
+  );
   const averageConfidence =
     analysis.letters.reduce((total, letter) => total + letter.confidence, 0) /
     Math.max(analysis.letters.length, 1);
 
-  return detectedLetters.size >= 26 && averageConfidence >= 0.82;
+  return (
+    detectedUppercaseLetters.size >= SUPPORTED_LETTERS.length &&
+    averageConfidence >= 0.82
+  );
+}
+
+function isSupportedUppercaseLetter(letter: string) {
+  return (SUPPORTED_LETTERS as readonly string[]).includes(letter);
 }
 
 function logGeminiUsage({

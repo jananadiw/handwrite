@@ -1,9 +1,21 @@
 "use client";
 
 import { useId } from "react";
+import { SUPPORTED_GLYPHS } from "@/lib/extraction/constants";
 import type { GeneratedHandwritingFont } from "@/lib/font/generate-handwriting-font";
 
-const REVIEW_SAMPLE = "HANDWRITE\nTHE QUICK BROWN FOX\nABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const REVIEW_SAMPLE_ROWS = [
+  "HANDWRITE",
+  "handwrite",
+  "THE QUICK",
+  "BROWN FOX",
+  "abcdefghi",
+  "jklmnopqr",
+  "stuvwxyz",
+  "ABCDEFGHI",
+  "JKLMNOPQR",
+  "STUVWXYZ",
+];
 
 export function FontReview({
   generatedFont,
@@ -34,7 +46,7 @@ export function FontReview({
             Your .ttf is ready
           </h2>
           <p className="mt-2 text-sm font-light leading-5 text-muted">
-            {generatedFont.generatedLetters.length}/26 uppercase glyphs generated
+            {generatedFont.generatedLetters.length}/{SUPPORTED_GLYPHS.length} glyphs generated
           </p>
         </div>
         <a
@@ -46,13 +58,17 @@ export function FontReview({
         </a>
       </div>
 
-      <div className="mt-5 border border-linen bg-white px-4 py-5">
-        <p
-          className="whitespace-pre-wrap text-[34px] leading-[1.35] tracking-normal text-ink sm:text-[46px]"
+      <div className="mt-5 overflow-hidden border border-linen bg-white px-4 py-5">
+        <div
+          className="grid max-w-full gap-2 overflow-hidden text-[30px] leading-[1.15] tracking-normal text-ink sm:text-[40px]"
           style={{ fontFamily: `"${previewFamily}"` }}
         >
-          {REVIEW_SAMPLE}
-        </p>
+          {REVIEW_SAMPLE_ROWS.map((sample) => (
+            <p className="max-w-full overflow-hidden break-all" key={sample}>
+              {sample}
+            </p>
+          ))}
+        </div>
       </div>
 
       {generatedFont.missingLetters.length > 0 ? (

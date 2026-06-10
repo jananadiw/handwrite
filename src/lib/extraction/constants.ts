@@ -27,6 +27,40 @@ export const SUPPORTED_LETTERS = [
   "Z",
 ] as const;
 
+export const SUPPORTED_LOWERCASE_LETTERS = [
+  "a",
+  "b",
+  "c",
+  "d",
+  "e",
+  "f",
+  "g",
+  "h",
+  "i",
+  "j",
+  "k",
+  "l",
+  "m",
+  "n",
+  "o",
+  "p",
+  "q",
+  "r",
+  "s",
+  "t",
+  "u",
+  "v",
+  "w",
+  "x",
+  "y",
+  "z",
+] as const;
+
+export const SUPPORTED_GLYPHS = [
+  ...SUPPORTED_LETTERS,
+  ...SUPPORTED_LOWERCASE_LETTERS,
+] as const;
+
 export const GEMINI_ANALYSIS_MODEL = "gemini-3.5-flash";
 
 export const SUPPORTED_IMAGE_MIME_TYPES = [

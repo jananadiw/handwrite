@@ -2,6 +2,10 @@ import * as opentype from "opentype.js";
 import type { PathTransform, SvgPathOptions } from "@/lib/font/types";
 
 export function getInkPathData(svg: string) {
+  if (typeof DOMParser === "undefined") {
+    return getInkPathDataFromMarkup(svg);
+  }
+
   const document = new DOMParser().parseFromString(svg, "image/svg+xml");
   const paths = Array.from(document.querySelectorAll("path"));
   const inkPathData = paths
@@ -18,6 +22,30 @@ export function getInkPathData(svg: string) {
     .filter((pathData): pathData is string => Boolean(pathData));
 
   return inkPathData.length > 0 ? inkPathData.join(" ") : null;
+}
+
+function getInkPathDataFromMarkup(svg: string) {
+  const pathTags = svg.match(/<path\b[^>]*>/gi) ?? [];
+  const inkPathData = pathTags
+    .filter((pathTag) => {
+      const fill = getAttribute(pathTag, "fill") ?? "";
+
+      return (
+        fill.includes("rgb(0,0,0)") ||
+        fill.includes("rgb(0, 0, 0)") ||
+        fill.toLowerCase() === "black"
+      );
+    })
+    .map((pathTag) => getAttribute(pathTag, "d"))
+    .filter((pathData): pathData is string => Boolean(pathData));
+
+  return inkPathData.length > 0 ? inkPathData.join(" ") : null;
+}
+
+function getAttribute(markup: string, name: string) {
+  const match = markup.match(new RegExp(`${name}=["']([^"']+)["']`, "i"));
+
+  return match?.[1] ?? null;
 }
 
 export function pathFromSvg(pathData: string, options: SvgPathOptions) {

@@ -1,10 +1,10 @@
 import { z } from "zod/v3";
 import {
   NORMALIZED_COORDINATE_MAX,
-  SUPPORTED_LETTERS,
+  SUPPORTED_GLYPHS,
 } from "@/lib/extraction/constants";
 
-export const letterCharSchema = z.enum(SUPPORTED_LETTERS);
+export const letterCharSchema = z.enum(SUPPORTED_GLYPHS);
 
 export const normalizedCoordinateSchema = z
   .number()

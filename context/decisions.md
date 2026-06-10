@@ -28,6 +28,20 @@
 - Impact: The first generated font supports traced detected letters with simple metrics; fidelity improvements should focus on detection, cleanup, and glyph normalization.
 - Revisit: If font generation needs server-only dependencies, persistent jobs, or higher-fidelity vectorization.
 
+## 2026-06-09: Worker-Based Font Generation
+
+- Decision: Run browser-side font generation in a Web Worker after Gemini analysis completes.
+- Reason: Raster tracing and OpenType serialization can block the main UI thread on slower devices.
+- Impact: Upload state, analysis, and download handling stay in React while glyph tracing and `.ttf` serialization run off-thread.
+- Revisit: If Worker browser support, tracing dependencies, or generation performance require a backend job.
+
+## 2026-06-09: Uppercase and Lowercase Glyph Extraction
+
+- Decision: Detect and trace both uppercase and lowercase handwritten glyphs when present.
+- Reason: Users naturally write paired samples like `Aa`, and synthesized lowercase does not preserve handwriting style.
+- Impact: Font generation targets 52 glyphs, using uppercase-derived lowercase only as a fallback.
+- Revisit: If the app adds guided templates or supports punctuation/numbers.
+
 ## 2026-06-08: Paper Grain Page Background
 
 - Decision: Replace the page grid background with a CSS-generated paper grain texture.

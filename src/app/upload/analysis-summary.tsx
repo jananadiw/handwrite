@@ -1,4 +1,5 @@
 import type { AlphabetAnalysis } from "@/lib/extraction/schemas";
+import { SUPPORTED_GLYPHS } from "@/lib/extraction/constants";
 
 export function AnalysisSummary({ analysis }: { analysis: AlphabetAnalysis }) {
   const detectedLetters = new Set(analysis.letters.map((letter) => letter.char));
@@ -12,7 +13,7 @@ export function AnalysisSummary({ analysis }: { analysis: AlphabetAnalysis }) {
         Analysis complete
       </p>
       <p className="mt-2 text-base font-medium leading-6 text-ink">
-        {detectedLetters.size} of 26 letters detected
+        {detectedLetters.size} of {SUPPORTED_GLYPHS.length} glyphs detected
       </p>
       <p className="mt-1 text-sm font-light leading-5 text-muted">
         {issueCount > 0

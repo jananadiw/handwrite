@@ -1,4 +1,4 @@
-import { SUPPORTED_LETTERS } from "@/lib/extraction/constants";
+import { SUPPORTED_GLYPHS } from "@/lib/extraction/constants";
 import type {
   AlphabetAnalysis,
   LetterDetection,
@@ -21,5 +21,5 @@ export function getBestDetections(analysis: AlphabetAnalysis) {
 export function getMissingLetters(generatedLetters: string[]) {
   const generated = new Set(generatedLetters);
 
-  return SUPPORTED_LETTERS.filter((letter) => !generated.has(letter));
+  return SUPPORTED_GLYPHS.filter((letter) => !generated.has(letter));
 }
