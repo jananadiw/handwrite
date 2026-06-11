@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-06-11: Automatic Glyph Preprocessing
+
+- Decision: Clean and normalize glyph masks automatically before browser-side tracing.
+- Reason: User handwriting samples vary in size, stroke thickness, and stray ink around letters.
+- Impact: Generated uppercase glyphs target cap height, lowercase glyphs target x-height, and detached noise is filtered before tracing.
+- Revisit: If users need manual per-letter cleanup controls or a guided writing template.
+
 ## 2026-06-04: Vellum & Indigo Design System
 
 - Decision: Use Tailwind theme tokens for the Vellum & Indigo palette, with Cormorant Garamond for display/type previews and DM Sans for functional UI.

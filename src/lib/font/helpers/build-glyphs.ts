@@ -18,9 +18,10 @@ import {
 } from "./canvas";
 import {
   countInkPixels,
-  createMaskCanvas,
+  createMaskCanvasFromInkMask,
   getInkBounds,
   padPixelRect,
+  preprocessInkMask,
 } from "./ink-mask";
 import { getInkPathData, pathFromSvg, transformPath } from "./svg-paths";
 
@@ -68,7 +69,17 @@ export function traceGlyph({
     return null;
   }
 
-  const maskCanvas = createMaskCanvas(sourceCanvas, inkBounds);
+  const processedMask = preprocessInkMask({
+    bounds: inkBounds,
+    char: detection.char,
+    imageData: sourceImageData,
+  });
+
+  if (!processedMask) {
+    return null;
+  }
+
+  const maskCanvas = createMaskCanvasFromInkMask(processedMask);
   const maskContext = getFontCanvasContext(maskCanvas);
   const svg = ImageTracer.imagedataToSVG(
     maskContext.getImageData(0, 0, maskCanvas.width, maskCanvas.height),
@@ -80,18 +91,16 @@ export function traceGlyph({
     return null;
   }
 
-  const scale =
-    DEFAULT_FONT_METRICS.capHeight / Math.max(maskCanvas.height, 1);
   const path = pathFromSvg(pathData, {
     flipY: true,
     flipYBase: maskCanvas.height,
-    scale,
+    scale: 1,
     x: DEFAULT_FONT_METRICS.sideBearing,
     y: 0,
   });
   const advanceWidth = Math.max(
     DEFAULT_FONT_METRICS.unitsPerEm / 2,
-    Math.round(maskCanvas.width * scale + DEFAULT_FONT_METRICS.sideBearing * 2),
+    Math.round(maskCanvas.width + DEFAULT_FONT_METRICS.sideBearing * 2),
   );
 
   return new opentype.Glyph({
