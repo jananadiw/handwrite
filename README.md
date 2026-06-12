@@ -1,8 +1,8 @@
 # HandWrite
 
-<video src="./public/handwrite-preview.mov" controls muted playsinline width="100%">
-  <a href="./public/handwrite-preview.mov">Watch the HandWrite preview</a>
-</video>
+[![HandWrite preview](./public/handwrite-preview.png)](./public/handwrite-preview.mov)
+
+[Watch the HandWrite preview](./public/handwrite-preview.mov)
 
 HandWrite turns a clear photo of handwritten letters into a downloadable TrueType font. The app guides someone through uploading an alphabet sample, analyzes the photo with Gemini, traces the detected glyphs in the browser, and exports a `.ttf` file for review and download.
 
