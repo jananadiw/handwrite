@@ -136,15 +136,15 @@ export function UploadPhotoForm() {
   return (
     <section className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-[760px] items-center justify-center">
       <div className="flex w-full flex-col gap-5">
-        <div className="border border-indigo bg-stone/95 px-6 py-7 shadow-[0_2px_3px_rgba(0,0,0,0.16)] sm:px-8 sm:py-9">
+        <div className="bg-stone/95 px-6 py-7 shadow-[0_18px_54px_rgba(43,38,34,0.10)] sm:px-8 sm:py-9">
           <div className="text-center">
-            <p className="text-sm font-medium uppercase tracking-[0.16em] text-indigo">
+            <p className="text-sm font-medium uppercase tracking-[0.16em] text-ink">
               Step 1
             </p>
-            <h1 className="mt-4 font-serif text-5xl font-light leading-none tracking-normal text-ink sm:text-6xl">
+            <h1 className="mt-4 font-serif text-5xl font-bold italic leading-none tracking-normal text-title sm:text-5xl">
               Upload your letters
             </h1>
-            <p className="mt-4 text-lg font-light leading-8 text-muted">
+            <p className="mt-4 text-lg font-light leading-8 text-subtitle">
               Take one clear phone photo before uploading.
             </p>
           </div>
@@ -179,7 +179,7 @@ export function UploadPhotoForm() {
           ) : null}
 
           {error ? (
-            <p className="mt-4 text-sm font-medium leading-6 text-indigo">
+            <p className="mt-4 text-sm font-medium leading-6 text-ink">
               {error}
             </p>
           ) : null}

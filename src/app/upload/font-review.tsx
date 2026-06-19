@@ -28,7 +28,7 @@ export function FontReview({
   const previewFamily = `handwrite-preview-${fontId}`;
 
   return (
-    <section className="mt-6 border border-indigo bg-stone px-4 py-5 sm:px-5">
+    <section className="mt-6 bg-stone px-4 py-5 shadow-[0_10px_28px_rgba(43,38,34,0.06)] sm:px-5">
       <style>{`
         @font-face {
           font-family: "${previewFamily}";
@@ -39,7 +39,7 @@ export function FontReview({
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.16em] text-indigo">
+          <p className="text-sm font-medium uppercase tracking-[0.16em] text-ink">
             Review font
           </p>
           <h2 className="mt-2 text-2xl font-medium leading-7 text-ink">
@@ -50,7 +50,7 @@ export function FontReview({
           </p>
         </div>
         <a
-          className="flex h-12 items-center justify-center border border-indigo bg-indigo px-5 text-sm font-medium text-stone hover:bg-ink"
+          className="flex h-12 items-center justify-center bg-button px-5 text-sm font-medium text-button-foreground hover:bg-button-hover"
           download={generatedFont.fileName}
           href={fontUrl}
         >
@@ -58,7 +58,7 @@ export function FontReview({
         </a>
       </div>
 
-      <div className="mt-5 overflow-hidden border border-linen bg-white px-4 py-5">
+      <div className="mt-5 overflow-hidden bg-white px-4 py-5 shadow-[inset_0_0_24px_rgba(43,38,34,0.04)]">
         <div
           className="grid max-w-full gap-2 overflow-hidden text-[30px] leading-[1.15] tracking-normal text-ink sm:text-[40px]"
           style={{ fontFamily: `"${previewFamily}"` }}
@@ -72,7 +72,7 @@ export function FontReview({
       </div>
 
       {generatedFont.missingLetters.length > 0 ? (
-        <p className="mt-4 text-sm font-medium leading-6 text-indigo">
+        <p className="mt-4 text-sm font-medium leading-6 text-ink">
           Missing glyphs: {generatedFont.missingLetters.join(", ")}
         </p>
       ) : null}

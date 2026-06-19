@@ -8,8 +8,8 @@ export function AnalysisSummary({ analysis }: { analysis: AlphabetAnalysis }) {
     analysis.letters.reduce((total, letter) => total + letter.issues.length, 0);
 
   return (
-    <div className="mt-6 border border-indigo bg-periwinkle px-4 py-4">
-      <p className="text-sm font-medium uppercase tracking-[0.16em] text-indigo">
+    <div className="mt-6 bg-periwinkle px-4 py-4 shadow-[0_10px_28px_rgba(43,38,34,0.05)]">
+      <p className="text-sm font-medium uppercase tracking-[0.16em] text-ink">
         Analysis complete
       </p>
       <p className="mt-2 text-base font-medium leading-6 text-ink">
