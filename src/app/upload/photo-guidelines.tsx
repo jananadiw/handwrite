@@ -29,7 +29,7 @@ export function PhotoGuidelines() {
           className="grid grid-cols-[40px_1fr] gap-3 bg-linen px-4 py-4"
           key={item.title}
         >
-          <div className="flex h-10 w-10 items-center justify-center bg-stone font-serif text-lg font-light text-indigo">
+          <div className="flex h-10 w-10 items-center justify-center bg-stone font-serif text-lg font-bold text-ink">
             {item.icon}
           </div>
           <div>

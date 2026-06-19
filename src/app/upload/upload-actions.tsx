@@ -19,14 +19,14 @@ export function UploadActions({
   return (
     <div className="grid grid-cols-2 gap-5">
       <Link
-        className="flex h-14 items-center justify-center border border-indigo bg-stone text-sm font-medium text-ink hover:bg-linen"
+        className="flex h-14 items-center justify-center bg-stone text-sm font-medium text-ink shadow-[0_10px_28px_rgba(43,38,34,0.06)] hover:bg-linen"
         href="/"
       >
         Back
       </Link>
       {status === "generated" && generatedFont && generatedFontUrl ? (
         <a
-          className="flex h-14 items-center justify-center border border-indigo bg-indigo text-sm font-medium text-stone hover:bg-ink"
+          className="flex h-14 items-center justify-center bg-button text-sm font-medium text-button-foreground shadow-[0_10px_28px_rgba(43,38,34,0.08)] hover:bg-button-hover"
           download={generatedFont.fileName}
           href={generatedFontUrl}
         >
@@ -34,7 +34,7 @@ export function UploadActions({
         </a>
       ) : (
         <button
-          className="flex h-14 items-center justify-center border border-indigo bg-indigo text-sm font-medium text-stone hover:bg-ink disabled:cursor-not-allowed disabled:border-muted disabled:bg-muted"
+          className="flex h-14 items-center justify-center bg-button text-sm font-medium text-button-foreground shadow-[0_10px_28px_rgba(43,38,34,0.08)] hover:bg-button-hover disabled:cursor-not-allowed disabled:bg-muted disabled:shadow-none"
           disabled={
             status === "normalising" ||
             status === "analyzing" ||

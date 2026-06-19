@@ -28,9 +28,9 @@ export function UploadState({
   const label = getUploadStateLabel({ analysis, normalisedPhoto, status });
 
   return (
-    <div className="mt-6 border border-indigo bg-stone px-4 py-4">
+    <div className="mt-6 bg-stone px-4 py-4 shadow-[0_10px_28px_rgba(43,38,34,0.06)]">
       <div className="grid grid-cols-[56px_1fr] gap-4">
-        <div className="flex h-14 w-14 items-center justify-center bg-linen text-xs font-medium uppercase text-indigo">
+        <div className="flex h-14 w-14 items-center justify-center bg-linen text-xs font-medium uppercase text-ink">
           jpg
         </div>
         <div className="min-w-0">
@@ -43,7 +43,7 @@ export function UploadState({
         </div>
       </div>
       <div className="mt-4 h-1 bg-linen">
-        <div className={`h-full bg-indigo transition-all ${progress}`} />
+        <div className={`h-full bg-button transition-all ${progress}`} />
       </div>
     </div>
   );

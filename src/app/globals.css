@@ -1,39 +1,182 @@
 @import "tailwindcss";
 
+@font-face {
+    font-family: "New HandWrite";
+    src: url("./fonts/newHandwrite.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
 @theme inline {
-    --color-stone: #f5f3ef;
-    --color-ink: #1a1916;
-    --color-indigo: #3d4f8a;
-    --color-periwinkle: #e4e8f8;
-    --color-linen: #e8e4dc;
-    --color-muted: #7a7060;
-    --color-background: var(--color-stone);
+    --color-background: #FAF9F7;
+    --color-coral: #F28F79;
+    --color-sky: #8EB8D8;
+    --color-sage: #A7BC9A;
+    --color-ink: #2B2622;
+    --color-stone: #fffefa;
+    --color-primary: var(--color-sage);
+    --color-indigo: var(--color-primary);
+    --color-title: var(--color-ink);
+    --color-subtitle: #625b53;
+    --color-button: var(--color-primary);
+    --color-button-foreground: var(--color-ink);
+    --color-button-hover: #96ad88;
+    --color-periwinkle: #eef3eb;
+    --color-linen: #ebe5dc;
+    --color-muted: #786f66;
     --color-foreground: var(--color-ink);
-    --font-sans: var(--font-dm-sans);
-    --font-serif: var(--font-cormorant);
+    --font-sans: var(--font-work-sans);
+    --font-serif: var(--font-libre-baskerville);
 }
 
 .paper-grid {
-    background-color: var(--color-stone);
+    --paper-grid-size: 32px;
+    --paper-grid-line: color-mix(in srgb, var(--color-ink) 6%, transparent);
+    background-color: var(--color-background);
     background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='paperNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.18 0 0 0 0 0.16 0 0 0 0 0.12 0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23paperNoise)'/%3E%3C/svg%3E"),
-        radial-gradient(
-            circle at 50% 38%,
-            rgba(255, 255, 255, 0.34),
-            transparent 56%
-        ),
+        linear-gradient(to right, var(--paper-grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--paper-grid-line) 1px, transparent 1px),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cfilter id='paperGrain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.24 0 0 0 0 0.22 0 0 0 0 0.18 0 0 0 0.18 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23paperGrain)'/%3E%3C/svg%3E"),
         linear-gradient(
             135deg,
-            rgba(255, 255, 255, 0.22),
-            rgba(213, 205, 190, 0.24)
+            rgba(255, 255, 255, 0.2),
+            rgba(210, 203, 190, 0.24)
         );
-    background-blend-mode: multiply, screen, normal;
+    background-blend-mode: normal, normal, multiply, normal;
     background-position:
+        0 0,
         0 0,
         0 0,
         0 0;
     background-size:
-        180px 180px,
-        100% 100%,
+        var(--paper-grid-size) var(--paper-grid-size),
+        var(--paper-grid-size) var(--paper-grid-size),
+        220px 220px,
         100% 100%;
+}
+
+.home-spotlight {
+    --spotlight-x: 50vw;
+    --spotlight-y: 48vh;
+    --spotlight-cell: var(--paper-grid-size, 32px);
+    --spotlight-paper-radius: 240px;
+    --spotlight-reveal-radius: 56px;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.home-spotlight__halo,
+.home-spotlight__letters {
+    position: absolute;
+    inset: 0;
+}
+
+.home-spotlight__halo {
+    background: radial-gradient(
+        circle var(--spotlight-paper-radius) at var(--spotlight-x)
+            var(--spotlight-y),
+        color-mix(in srgb, var(--color-background) 86%, transparent) 0%,
+        color-mix(in srgb, var(--color-background) 52%, transparent) 42%,
+        transparent 76%
+    );
+    opacity: 0.76;
+}
+
+.home-spotlight__letters {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, var(--spotlight-cell));
+    grid-auto-rows: var(--spotlight-cell);
+    align-content: start;
+    justify-content: start;
+    overflow: hidden;
+    color: color-mix(in srgb, var(--color-ink) 48%, transparent);
+    font-family: "New HandWrite", cursive;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: 0;
+    opacity: 0.9;
+    -webkit-mask-image: radial-gradient(
+        circle var(--spotlight-reveal-radius) at var(--spotlight-x)
+            var(--spotlight-y),
+        #000 0%,
+        rgba(0, 0, 0, 0.86) 52%,
+        rgba(0, 0, 0, 0.2) 82%,
+        transparent 100%
+    );
+    mask-image: radial-gradient(
+        circle var(--spotlight-reveal-radius) at var(--spotlight-x)
+            var(--spotlight-y),
+        #000 0%,
+        rgba(0, 0, 0, 0.86) 52%,
+        rgba(0, 0, 0, 0.2) 82%,
+        transparent 100%
+    );
+}
+
+.home-spotlight__letter {
+    display: flex;
+    width: var(--spotlight-cell);
+    min-width: 0;
+    height: var(--spotlight-cell);
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    justify-self: start;
+    align-self: start;
+    overflow: hidden;
+    line-height: var(--spotlight-cell);
+}
+
+.home-spotlight__letters--top {
+    clip-path: polygon(0 0, 100% 0, 100% calc(50% - 180px), 0 calc(50% - 180px));
+}
+
+.home-spotlight__letters--bottom {
+    clip-path: polygon(0 calc(50% + 180px), 100% calc(50% + 180px), 100% 100%, 0 100%);
+}
+
+.home-spotlight__letters--left {
+    clip-path: polygon(
+        0 calc(50% - 180px),
+        calc(50% - 250px) calc(50% - 180px),
+        calc(50% - 250px) calc(50% + 180px),
+        0 calc(50% + 180px)
+    );
+}
+
+.home-spotlight__letters--right {
+    clip-path: polygon(
+        calc(50% + 250px) calc(50% - 180px),
+        100% calc(50% - 180px),
+        100% calc(50% + 180px),
+        calc(50% + 250px) calc(50% + 180px)
+    );
+}
+
+@media (max-width: 640px) {
+    .home-spotlight {
+        --spotlight-paper-radius: 190px;
+        --spotlight-reveal-radius: 44px;
+    }
+
+    .home-spotlight__letter {
+        font-size: 23px;
+    }
+
+    .home-spotlight__letters--top {
+        clip-path: polygon(0 0, 100% 0, 100% calc(50% - 160px), 0 calc(50% - 160px));
+    }
+
+    .home-spotlight__letters--bottom {
+        clip-path: polygon(0 calc(50% + 160px), 100% calc(50% + 160px), 100% 100%, 0 100%);
+    }
+
+    .home-spotlight__letters--left,
+    .home-spotlight__letters--right {
+        display: none;
+    }
 }
