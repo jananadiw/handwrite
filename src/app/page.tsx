@@ -16,13 +16,17 @@ export default function Home() {
         </div>
 
         <video
-          className="h-[min(42vh,390px)] w-auto max-w-full bg-stone shadow-[0_18px_45px_rgba(43,38,34,0.12)]"
-          src="/home-handwrite-preview.mp4"
+          className="h-[min(42vh,390px)] w-auto max-w-full"
           autoPlay
           muted
           loop
           playsInline
         >
+          <source
+            src="/home-handwrite-preview-transparent.webm"
+            type="video/webm"
+          />
+          <source src="/home-handwrite-preview.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
 

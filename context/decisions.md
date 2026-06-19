@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-06-19: Transparent Homepage Preview Video
+
+- Decision: Prefer a VP9 WebM with keyed transparency for the homepage handwriting preview, with the original MP4 as fallback.
+- Reason: CSS blending could not fully remove the opaque light video background in Chrome.
+- Impact: The preview sits directly on the paper grid without a rectangular card, while browsers without WebM support still have the original MP4.
+- Revisit: If Safari-grade alpha video support becomes required or the preview asset is redesigned.
+
 ## 2026-06-19: Libre Baskerville and Work Sans Pairing
 
 - Decision: Use bold italic Libre Baskerville as the display font and Work Sans as the body/UI font.
