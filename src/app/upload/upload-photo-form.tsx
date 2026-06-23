@@ -138,19 +138,16 @@ export function UploadPhotoForm() {
       <div className="flex w-full flex-col gap-5">
         <div className="bg-stone/95 px-6 py-7 shadow-[0_18px_54px_rgba(43,38,34,0.10)] sm:px-8 sm:py-9">
           <div className="text-center">
-            <p className="text-sm font-medium uppercase tracking-[0.16em] text-ink">
-              Step 1
-            </p>
-            <h1 className="mt-4 font-serif text-5xl font-bold italic leading-none tracking-normal text-title sm:text-5xl">
-              Upload your letters
+            <h1 className="font-serif text-3xl font-bold italic leading-tight tracking-normal text-title sm:text-4xl">
+              Upload a clear alphabet photo
             </h1>
-            <p className="mt-4 text-lg font-light leading-8 text-subtitle">
-              Take one clear phone photo before uploading.
+            <p className="mt-3 text-base font-light leading-7 text-subtitle sm:text-lg">
+              Write A-Z and a-z on plain paper, then upload one straight photo.
             </p>
           </div>
 
-          <PhotoGuidelines />
           <AlphabetSample />
+          <PhotoGuidelines />
           <PhotoDropZone inputId={inputId} onDrop={handleDrop} />
 
           <input

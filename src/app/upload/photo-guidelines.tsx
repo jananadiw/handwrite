@@ -1,47 +1,25 @@
 const photoGuidelines = [
-  {
-    icon: "Aa",
-    title: "Write uppercase and lowercase",
-    detail: "Use a black pen or marker on plain white paper",
-  },
-  {
-    icon: "A Z",
-    title: "Leave space between each letter",
-    detail: "Do not connect or touch adjacent letters",
-  },
-  {
-    icon: "☼",
-    title: "Shoot in good light, flat on a table",
-    detail: "No shadows, no angle - camera directly above",
-  },
-  {
-    icon: "×",
-    title: "No lined or grid paper",
-    detail: "Lines confuse the letter detection",
-  },
+  "Write A-Z - a-z",
+  "Use dark pen on white paper",
+  "Space every letter",
+  "Flat bright photo",
 ];
 
 export function PhotoGuidelines() {
   return (
-    <div className="mt-8 grid gap-3 sm:grid-cols-2">
-      {photoGuidelines.map((item) => (
-        <div
-          className="grid grid-cols-[40px_1fr] gap-3 bg-linen px-4 py-4"
-          key={item.title}
-        >
-          <div className="flex h-10 w-10 items-center justify-center bg-stone font-serif text-lg font-bold text-ink">
-            {item.icon}
-          </div>
-          <div>
-            <h2 className="text-sm font-medium leading-5 text-ink">
-              {item.title}
-            </h2>
-            <p className="mt-1 text-sm font-light leading-5 text-muted">
-              {item.detail}
-            </p>
-          </div>
-        </div>
-      ))}
+    <div className="mt-4 text-center">
+      <p className="text-sm font-medium leading-6 text-muted">
+        {photoGuidelines.map((item, index) => (
+          <span key={item}>
+            {index > 0 ? <span className="mx-2 text-ink/35">•</span> : null}
+            {item}
+          </span>
+        ))}
+      </p>
+      <p className="mx-auto mt-3 max-w-[560px] bg-periwinkle px-4 py-3 text-sm font-medium leading-6 text-subtitle">
+        Tip: Draw the alphabet on an iPad or another tablet for the cleanest
+        result.
+      </p>
     </div>
   );
 }
