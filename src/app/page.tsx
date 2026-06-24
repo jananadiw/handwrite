@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { HomeSpotlight } from "./home-spotlight";
 
 export default function Home() {
@@ -15,20 +16,15 @@ export default function Home() {
           </p>
         </div>
 
-        <video
+        <Image
+          alt="Animated handwriting font preview"
           className="h-[min(42vh,390px)] w-auto max-w-full"
-          autoPlay
-          muted
-          loop
-          playsInline
-        >
-          <source
-            src="/home-handwrite-preview-transparent.webm"
-            type="video/webm"
-          />
-          <source src="/home-handwrite-preview.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
+          height={371}
+          priority
+          src="/home-handwrite-preview.gif"
+          unoptimized
+          width={480}
+        />
 
         <a
           className="flex h-14 w-[166px] items-center justify-center bg-button text-sm font-medium text-button-foreground shadow-[0_10px_28px_rgba(43,38,34,0.08)] hover:bg-button-hover"

@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-06-23: Phase-Specific Upload Flow
+- Decision: The upload page renders one focused phase at a time: the upload call-to-action comes first before selection, the example image is optional supporting content, processing uses dedicated progress panels, and font review appears only after generation.
+- Reason: The prior stacked layout kept obsolete upload content visible and made later steps harder to understand.
+- Impact: Re-upload is handled through explicit change-photo and upload-another-photo actions instead of keeping the initial upload UI on every phase. After generation, upload-another-photo warns that the current `.ttf` will be lost unless downloaded.
+- Revisit: If the flow adds multi-photo uploads, persistent saved fonts, or a guided correction stage.
+
 ## 2026-06-19: Current Visual System
 - Decision: Use a sage paper palette, CSS paper grain/grid, Libre Baskerville display type, and Work Sans UI type.
 - Reason: The app should feel warm and handwriting-focused without sacrificing interface readability.

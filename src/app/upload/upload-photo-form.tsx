@@ -3,12 +3,18 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { AlphabetSample } from "./alphabet-sample";
 import { analyzePhoto } from "./analyze-photo";
-import { AnalysisSummary } from "./analysis-summary";
 import { FontReview } from "./font-review";
 import { PhotoDropZone } from "./photo-drop-zone";
 import { PhotoGuidelines } from "./photo-guidelines";
+import { ReplaceFontDialog } from "./replace-font-dialog";
 import { UploadActions } from "./upload-actions";
 import { UploadState } from "./upload-state";
+import { UploadStepIndicator } from "./upload-step-indicator";
+import {
+  getUploadHeaderCopy,
+  isUploadProcessing,
+  shouldShowUploadSteps,
+} from "./upload-helpers";
 import type { UploadStatus } from "./upload-types";
 import { generateHandwritingFontInWorker } from "@/lib/font/generate-handwriting-font-in-worker";
 import type { GeneratedHandwritingFont } from "@/lib/font/types";
@@ -21,6 +27,7 @@ import type { AlphabetAnalysis } from "@/lib/extraction/schemas";
 
 export function UploadPhotoForm() {
   const inputId = useId();
+  const guidelinesId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [sourceFile, setSourceFile] = useState<File | null>(null);
@@ -30,10 +37,26 @@ export function UploadPhotoForm() {
   const [generatedFont, setGeneratedFont] =
     useState<GeneratedHandwritingFont | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showReplaceFontDialog, setShowReplaceFontDialog] = useState(false);
+  const normalisedPhotoUrl = useMemo(
+    () => (normalisedPhoto ? URL.createObjectURL(normalisedPhoto.blob) : null),
+    [normalisedPhoto],
+  );
   const generatedFontUrl = useMemo(
     () => (generatedFont ? URL.createObjectURL(generatedFont.blob) : null),
     [generatedFont],
   );
+  const headerCopy = getUploadHeaderCopy(status, Boolean(sourceFile));
+  const showSteps = shouldShowUploadSteps(status, Boolean(sourceFile));
+  const processing = isUploadProcessing(status);
+
+  useEffect(() => {
+    if (!normalisedPhotoUrl) {
+      return;
+    }
+
+    return () => URL.revokeObjectURL(normalisedPhotoUrl);
+  }, [normalisedPhotoUrl]);
 
   useEffect(() => {
     if (!generatedFontUrl) {
@@ -88,6 +111,35 @@ export function UploadPhotoForm() {
     handleFiles(event.dataTransfer.files);
   }
 
+  function resetUpload() {
+    setStatus("idle");
+    setSourceFile(null);
+    setNormalisedPhoto(null);
+    setAnalysis(null);
+    setGeneratedFont(null);
+    setError(null);
+    setShowReplaceFontDialog(false);
+
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+  }
+
+  function handleUploadAnotherPhoto() {
+    if (generatedFont && generatedFontUrl) {
+      setShowReplaceFontDialog(true);
+      return;
+    }
+
+    resetUpload();
+    window.setTimeout(() => inputRef.current?.click(), 0);
+  }
+
+  function confirmUploadAnotherPhoto() {
+    resetUpload();
+    window.setTimeout(() => inputRef.current?.click(), 0);
+  }
+
   async function handleContinue() {
     if (!normalisedPhoto) {
       inputRef.current?.click();
@@ -134,24 +186,34 @@ export function UploadPhotoForm() {
   }
 
   return (
-    <section className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-[760px] items-center justify-center">
-      <div className="flex w-full flex-col gap-5">
-        <div className="bg-stone/95 px-6 py-7 shadow-[0_18px_54px_rgba(43,38,34,0.10)] sm:px-8 sm:py-9">
+    <section className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-[720px] items-center justify-center">
+      <div className="flex w-full flex-col gap-4">
+        <div
+          aria-busy={processing}
+          className="bg-stone/95 px-5 py-6 shadow-[0_12px_36px_rgba(43,38,34,0.08)] sm:px-7 sm:py-7"
+        >
           <div className="text-center">
-            <p className="text-sm font-medium uppercase tracking-[0.16em] text-ink">
-              Step 1
-            </p>
-            <h1 className="mt-4 font-serif text-5xl font-bold italic leading-none tracking-normal text-title sm:text-5xl">
-              Upload your letters
+            <h1 className="font-serif text-3xl font-bold italic leading-tight tracking-normal text-title sm:text-[38px]">
+              {headerCopy.title}
             </h1>
-            <p className="mt-4 text-lg font-light leading-8 text-subtitle">
-              Take one clear phone photo before uploading.
+            <p className="mt-2 text-base font-light leading-7 text-subtitle">
+              {headerCopy.subtitle}
             </p>
           </div>
 
-          <PhotoGuidelines />
-          <AlphabetSample />
-          <PhotoDropZone inputId={inputId} onDrop={handleDrop} />
+          {showSteps ? <UploadStepIndicator status={status} /> : null}
+
+          {!sourceFile ? (
+            <>
+              <PhotoDropZone
+                describedById={guidelinesId}
+                inputId={inputId}
+                onDrop={handleDrop}
+              />
+              <PhotoGuidelines id={guidelinesId} />
+              <AlphabetSample />
+            </>
+          ) : null}
 
           <input
             accept="image/*"
@@ -162,24 +224,33 @@ export function UploadPhotoForm() {
             type="file"
           />
 
-          <UploadState
-            analysis={analysis}
-            file={sourceFile}
-            normalisedPhoto={normalisedPhoto}
-            status={status}
-          />
-
-          {analysis ? <AnalysisSummary analysis={analysis} /> : null}
+          {status !== "generated" ? (
+            <UploadState
+              analysis={analysis}
+              file={sourceFile}
+              normalisedPhoto={normalisedPhoto}
+              onChangePhoto={
+                processing ? undefined : () => inputRef.current?.click()
+              }
+              photoPreviewUrl={normalisedPhotoUrl}
+              status={status}
+            />
+          ) : null}
 
           {status === "generated" && generatedFont && generatedFontUrl ? (
             <FontReview
+              analysis={analysis}
               generatedFont={generatedFont}
               fontUrl={generatedFontUrl}
             />
           ) : null}
 
           {error ? (
-            <p className="mt-4 text-sm font-medium leading-6 text-ink">
+            <p
+              aria-live="assertive"
+              className="mt-4 text-sm font-medium leading-6 text-coral"
+              role="alert"
+            >
               {error}
             </p>
           ) : null}
@@ -190,8 +261,20 @@ export function UploadPhotoForm() {
           generatedFontUrl={generatedFontUrl}
           normalisedPhoto={normalisedPhoto}
           onPrimaryAction={() => void handleContinue()}
+          onSecondaryAction={
+            status === "generated" ? handleUploadAnotherPhoto : undefined
+          }
           status={status}
         />
+
+        {showReplaceFontDialog && generatedFont && generatedFontUrl ? (
+          <ReplaceFontDialog
+            fontUrl={generatedFontUrl}
+            generatedFont={generatedFont}
+            onCancel={() => setShowReplaceFontDialog(false)}
+            onConfirm={confirmUploadAnotherPhoto}
+          />
+        ) : null}
       </div>
     </section>
   );

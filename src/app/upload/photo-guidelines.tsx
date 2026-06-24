@@ -1,47 +1,25 @@
 const photoGuidelines = [
-  {
-    icon: "Aa",
-    title: "Write uppercase and lowercase",
-    detail: "Use a black pen or marker on plain white paper",
-  },
-  {
-    icon: "A Z",
-    title: "Leave space between each letter",
-    detail: "Do not connect or touch adjacent letters",
-  },
-  {
-    icon: "☼",
-    title: "Shoot in good light, flat on a table",
-    detail: "No shadows, no angle - camera directly above",
-  },
-  {
-    icon: "×",
-    title: "No lined or grid paper",
-    detail: "Lines confuse the letter detection",
-  },
+  "Write A-Z and a-z",
+  "Use dark pen on white paper",
+  "Space every letter",
+  "Flat bright photo",
 ];
 
-export function PhotoGuidelines() {
+export function PhotoGuidelines({ id }: { id?: string }) {
   return (
-    <div className="mt-8 grid gap-3 sm:grid-cols-2">
-      {photoGuidelines.map((item) => (
-        <div
-          className="grid grid-cols-[40px_1fr] gap-3 bg-linen px-4 py-4"
-          key={item.title}
-        >
-          <div className="flex h-10 w-10 items-center justify-center bg-stone font-serif text-lg font-bold text-ink">
-            {item.icon}
-          </div>
-          <div>
-            <h2 className="text-sm font-medium leading-5 text-ink">
-              {item.title}
-            </h2>
-            <p className="mt-1 text-sm font-light leading-5 text-muted">
-              {item.detail}
-            </p>
-          </div>
-        </div>
-      ))}
+    <div className="mt-4" id={id}>
+      <ul className="mx-auto flex max-w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-sm font-medium leading-6 text-subtitle">
+        {photoGuidelines.map((item, index) => (
+          <li className="flex items-center gap-x-3" key={item}>
+            {index > 0 ? (
+              <span aria-hidden="true" className="text-muted/60">
+                |
+              </span>
+            ) : null}
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

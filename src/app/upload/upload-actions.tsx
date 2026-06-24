@@ -1,32 +1,48 @@
 import Link from "next/link";
 import type { GeneratedHandwritingFont } from "@/lib/font/generate-handwriting-font";
 import type { NormalisedJpeg } from "@/lib/images/normalise-to-jpeg";
+import { isUploadProcessing } from "./upload-helpers";
 import type { UploadStatus } from "./upload-types";
+
+const actionFocusClass =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-2";
 
 export function UploadActions({
   generatedFont,
   generatedFontUrl,
   normalisedPhoto,
   onPrimaryAction,
+  onSecondaryAction,
   status,
 }: {
   generatedFont: GeneratedHandwritingFont | null;
   generatedFontUrl: string | null;
   normalisedPhoto: NormalisedJpeg | null;
   onPrimaryAction: () => void;
+  onSecondaryAction?: () => void;
   status: UploadStatus;
 }) {
+  const processing = isUploadProcessing(status);
+  const secondaryActionClass = `flex h-14 items-center justify-center bg-stone text-sm font-medium text-ink ring-1 ring-ink/8 hover:bg-linen ${actionFocusClass}`;
+
   return (
     <div className="grid grid-cols-2 gap-5">
-      <Link
-        className="flex h-14 items-center justify-center bg-stone text-sm font-medium text-ink shadow-[0_10px_28px_rgba(43,38,34,0.06)] hover:bg-linen"
-        href="/"
-      >
-        Back
-      </Link>
+      {onSecondaryAction ? (
+        <button
+          className={secondaryActionClass}
+          onClick={onSecondaryAction}
+          type="button"
+        >
+          Upload another photo
+        </button>
+      ) : (
+        <Link className={secondaryActionClass} href="/">
+          Back
+        </Link>
+      )}
       {status === "generated" && generatedFont && generatedFontUrl ? (
         <a
-          className="flex h-14 items-center justify-center bg-button text-sm font-medium text-button-foreground shadow-[0_10px_28px_rgba(43,38,34,0.08)] hover:bg-button-hover"
+          className={`flex h-14 items-center justify-center bg-button text-sm font-medium text-button-foreground hover:bg-button-hover ${actionFocusClass}`}
           download={generatedFont.fileName}
           href={generatedFontUrl}
         >
@@ -34,12 +50,9 @@ export function UploadActions({
         </a>
       ) : (
         <button
-          className="flex h-14 items-center justify-center bg-button text-sm font-medium text-button-foreground shadow-[0_10px_28px_rgba(43,38,34,0.08)] hover:bg-button-hover disabled:cursor-not-allowed disabled:bg-muted disabled:shadow-none"
-          disabled={
-            status === "normalising" ||
-            status === "analyzing" ||
-            status === "generating"
-          }
+          aria-busy={processing}
+          className={`flex h-14 items-center justify-center bg-button text-sm font-medium text-button-foreground hover:bg-button-hover disabled:cursor-not-allowed disabled:bg-muted disabled:shadow-none ${actionFocusClass}`}
+          disabled={processing}
           onClick={onPrimaryAction}
           type="button"
         >
