@@ -40,6 +40,14 @@ Create `.env.local` and add a Gemini API key:
 GEMINI_API_KEY=your_api_key_here
 ```
 
+For production, configure Redis-backed upload limiting with either Upstash Redis
+or Vercel KV-compatible REST variables:
+
+```bash
+UPSTASH_REDIS_REST_URL=your_redis_rest_url
+UPSTASH_REDIS_REST_TOKEN=your_redis_rest_token
+```
+
 Run the development server:
 
 ```bash
@@ -86,4 +94,5 @@ src/test/                     Test setup
 
 - The app does not persist uploads or generated fonts.
 - `GEMINI_API_KEY` stays on the server and is never exposed to browser code.
+- Production analysis uploads are capped at three valid photos per client IP.
 - Font fidelity depends on the photo: clear lighting, dark ink, and separated letters produce better glyphs.

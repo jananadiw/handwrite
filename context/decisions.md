@@ -6,6 +6,12 @@
 - Impact: Re-upload is handled through explicit change-photo and upload-another-photo actions instead of keeping the initial upload UI on every phase. After generation, upload-another-photo warns that the current `.ttf` will be lost unless downloaded.
 - Revisit: If the flow adds multi-photo uploads, persistent saved fonts, or a guided correction stage.
 
+## 2026-06-23: Production Upload Quota
+- Decision: Cap valid analysis uploads at three per client IP using Redis-backed counters in production.
+- Reason: The app uses an app-owned Gemini key and needs a simple abuse guard before public launch.
+- Impact: Production requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` or compatible Vercel KV REST env vars.
+- Revisit: If user accounts, paid tiers, reset windows, or more nuanced anti-abuse controls are added.
+
 ## 2026-06-19: Current Visual System
 - Decision: Use a sage paper palette, CSS paper grain/grid, Libre Baskerville display type, and Work Sans UI type.
 - Reason: The app should feel warm and handwriting-focused without sacrificing interface readability.

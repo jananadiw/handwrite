@@ -1,11 +1,30 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, mock, test } from "bun:test";
 import { MAX_ANALYSIS_IMAGE_BYTES } from "@/lib/extraction/constants";
-import { POST } from "./route";
+import { resetLocalAnalysisUploadQuota } from "@/lib/server/analysis-upload-rate-limit";
+
+mock.module("@/lib/server/gemini/client", () => ({
+  analyzeAlphabetPhoto: async () => {
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY is not configured.");
+    }
+
+    return {
+      usable: true,
+      orientationDegrees: 0,
+      letters: [],
+      globalIssues: [],
+    };
+  },
+}));
+
+const { POST } = await import("./route");
 
 const geminiApiKeyEnvName = "GEMINI_API" + "_KEY";
 const originalGeminiApiKey = process.env[geminiApiKeyEnvName];
 
 afterEach(() => {
+  resetLocalAnalysisUploadQuota();
+
   if (originalGeminiApiKey === undefined) {
     delete process.env[geminiApiKeyEnvName];
     return;
@@ -84,7 +103,39 @@ describe("POST /api/extract/analyze", () => {
 
     await expectError(response, 500, "missing_api_key");
   });
+
+  test("rejects the fourth valid photo from the same IP before analysis", async () => {
+    process.env[geminiApiKeyEnvName] = "test-api-key";
+
+    const firstResponse = await POST(validPhotoRequest());
+    const secondResponse = await POST(validPhotoRequest());
+    const thirdResponse = await POST(validPhotoRequest());
+    const fourthResponse = await POST(validPhotoRequest());
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+    expect(thirdResponse.status).toBe(200);
+    await expectError(fourthResponse, 429, "rate_limit_exceeded");
+  });
 });
+
+function validPhotoRequest() {
+  const formData = new FormData();
+  formData.append(
+    "photo",
+    new File([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], "letters.jpg", {
+      type: "image/jpeg",
+    }),
+  );
+
+  return new Request("http://localhost/api/extract/analyze", {
+    method: "POST",
+    body: formData,
+    headers: {
+      "x-forwarded-for": "203.0.113.1",
+    },
+  });
+}
 
 async function expectError(response: Response, status: number, code: string) {
   expect(response.status).toBe(status);
