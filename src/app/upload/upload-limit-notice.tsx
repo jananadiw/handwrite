@@ -6,11 +6,10 @@ export function UploadLimitNotice() {
       </div>
       <div>
         <h2 className="text-sm font-medium leading-5 text-ink">
-          You can analyze up to 3 photos on this network
+          You get 3 tries to analyze photos
         </h2>
         <p className="mt-1 text-sm font-light leading-5 text-muted">
-          Choose your clearest alphabet photos before analyzing. Invalid files
-          do not count toward the limit.
+          Use them on your clearest alphabet photos. Invalid files do not count.
         </p>
       </div>
     </div>
