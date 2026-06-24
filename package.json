@@ -10,7 +10,7 @@
     "test": "bun test --preload ./src/test/setup.ts"
   },
   "dependencies": {
-    "@google/genai": "^2.8.0",
+    "@google/genai": "^2.10.0",
     "heic2any": "^0.0.4",
     "imagetracerjs": "^1.2.6",
     "next": "16.2.7",
@@ -39,5 +39,9 @@
   "trustedDependencies": [
     "sharp",
     "unrs-resolver"
-  ]
+  ],
+  "overrides": {
+    "postcss": "8.5.15",
+    "protobufjs": "7.6.4"
+  }
 }
