@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-06-24: Vercel Web Analytics
+- Decision: Use Vercel Web Analytics through `@vercel/analytics` mounted in the App Router root layout.
+- Reason: The app is deployed on Vercel and needs lightweight first-party pageview analytics without adding a separate analytics vendor.
+- Impact: All app routes emit Vercel Web Analytics pageview data when analytics is enabled for the Vercel project.
+- Revisit: If the app needs product funnels, custom events, self-hosted analytics, or non-Vercel deployment support.
+
 ## 2026-06-23: Phase-Specific Upload Flow
 - Decision: The upload page renders one focused phase at a time: the upload call-to-action comes first before selection, the example image is optional supporting content, processing uses dedicated progress panels, and font review appears only after generation.
 - Reason: The prior stacked layout kept obsolete upload content visible and made later steps harder to understand.
