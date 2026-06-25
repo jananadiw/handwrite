@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Libre_Baskerville, Work_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -33,6 +34,7 @@ export default function RootLayout({
         className={`${libreBaskerville.variable} ${workSans.variable} bg-background font-sans text-ink antialiased`}
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
