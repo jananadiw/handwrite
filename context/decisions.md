@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-06-24: Opt-In Handwriting Photo Collection
+- Decision: Save uploaded handwriting photos to a private S3 bucket only when the user checks an explicit consent notice.
+- Reason: Real samples help review extraction quality, but silent collection would weaken the app's privacy posture.
+- Impact: The upload API writes opted-in normalized images under `uploads/`; AWS credentials remain server-only.
+- Revisit: If retention limits, admin review, deletion requests, or account-linked uploads are added.
+
 ## 2026-06-23: Phase-Specific Upload Flow
 - Decision: The upload page renders one focused phase at a time: the upload call-to-action comes first before selection, the example image is optional supporting content, processing uses dedicated progress panels, and font review appears only after generation.
 - Reason: The prior stacked layout kept obsolete upload content visible and made later steps harder to understand.

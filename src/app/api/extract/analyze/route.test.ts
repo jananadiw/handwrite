@@ -2,6 +2,8 @@ import { afterEach, describe, expect, mock, test } from "bun:test";
 import { MAX_ANALYSIS_IMAGE_BYTES } from "@/lib/extraction/constants";
 import { resetLocalAnalysisUploadQuota } from "@/lib/server/analysis-upload-rate-limit";
 
+const storedUploads: Array<{ imageBytes: ArrayBuffer; mimeType: string }> = [];
+
 mock.module("@/lib/server/gemini/client", () => ({
   analyzeAlphabetPhoto: async () => {
     if (!process.env.GEMINI_API_KEY) {
@@ -17,6 +19,23 @@ mock.module("@/lib/server/gemini/client", () => ({
   },
 }));
 
+mock.module("@/lib/server/s3-upload-storage", () => ({
+  storeHandwritingUpload: async ({
+    imageBytes,
+    mimeType,
+  }: {
+    imageBytes: ArrayBuffer;
+    mimeType: string;
+  }) => {
+    storedUploads.push({ imageBytes, mimeType });
+
+    return {
+      bucket: "test-bucket",
+      key: "uploads/test.jpg",
+    };
+  },
+}));
+
 const { POST } = await import("./route");
 
 const geminiApiKeyEnvName = "GEMINI_API" + "_KEY";
@@ -24,6 +43,7 @@ const originalGeminiApiKey = process.env[geminiApiKeyEnvName];
 
 afterEach(() => {
   resetLocalAnalysisUploadQuota();
+  storedUploads.length = 0;
 
   if (originalGeminiApiKey === undefined) {
     delete process.env[geminiApiKeyEnvName];
@@ -117,9 +137,23 @@ describe("POST /api/extract/analyze", () => {
     expect(thirdResponse.status).toBe(200);
     await expectError(fourthResponse, 429, "rate_limit_exceeded");
   });
+
+  test("stores the photo only when image collection is requested", async () => {
+    process.env[geminiApiKeyEnvName] = "test-api-key";
+
+    const privateResponse = await POST(validPhotoRequest());
+    const collectedResponse = await POST(
+      validPhotoRequest({ collectImage: true }),
+    );
+
+    expect(privateResponse.status).toBe(200);
+    expect(collectedResponse.status).toBe(200);
+    expect(storedUploads).toHaveLength(1);
+    expect(storedUploads[0]?.mimeType).toBe("image/jpeg");
+  });
 });
 
-function validPhotoRequest() {
+function validPhotoRequest({ collectImage = false } = {}) {
   const formData = new FormData();
   formData.append(
     "photo",
@@ -127,6 +161,7 @@ function validPhotoRequest() {
       type: "image/jpeg",
     }),
   );
+  formData.append("collectImage", collectImage ? "true" : "false");
 
   return new Request("http://localhost/api/extract/analyze", {
     method: "POST",

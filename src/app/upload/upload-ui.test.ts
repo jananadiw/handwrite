@@ -10,6 +10,7 @@ import { PhotoDropZone } from "./photo-drop-zone";
 import { PhotoGuidelines } from "./photo-guidelines";
 import { ReplaceFontDialog } from "./replace-font-dialog";
 import { UploadActions } from "./upload-actions";
+import { UploadCollectionConsent } from "./upload-collection-consent";
 import { UploadPhotoForm } from "./upload-photo-form";
 import { UploadState } from "./upload-state";
 import { UploadStepIndicator } from "./upload-step-indicator";
@@ -79,10 +80,8 @@ const SAMPLE_GENERATED_FONT = {
 };
 
 const HANDLER_HEADERS = [
-  "async function preparePhoto(file: File)",
   "function handleFiles(files: FileList | null)",
   "function handleDrop(event: React.DragEvent<HTMLLabelElement>)",
-  "async function handleContinue()",
   "function isPhotoFile(file: File)",
 ] as const;
 
@@ -254,6 +253,20 @@ describe("upload UI DOM output", () => {
     expect(html).not.toContain('href="/"');
   });
 
+  test("renders concise image collection consent", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(UploadCollectionConsent, {
+        checked: true,
+        id: "collect-image",
+        onCheckedChange: () => undefined,
+      }),
+    );
+
+    expect(html).toContain('type="checkbox"');
+    expect(html).toContain("Save my photo to improve HandWrite");
+    expect(html).toContain("Only this image is collected.");
+  });
+
   test("renders replace-font confirmation dialog with download option", () => {
     const html = renderToStaticMarkup(
       React.createElement(ReplaceFontDialog, {
@@ -309,7 +322,7 @@ describe("upload UI preservation", () => {
     expect(formSource).not.toContain("createOperationGuard");
   });
 
-  test("preserves preparePhoto and handle* handler bodies from baseline", () => {
+  test("preserves unchanged file selection handler bodies from baseline", () => {
     const currentSource = readUploadSource("upload-photo-form.tsx");
     const baselineSource = readBaselineFormSource();
     const report: string[] = ["handler preservation check:"];

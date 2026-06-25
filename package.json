@@ -10,6 +10,7 @@
     "test": "bun test --preload ./src/test/setup.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1075.0",
     "@google/genai": "^2.10.0",
     "@upstash/redis": "^1.38.0",
     "heic2any": "^0.0.4",

@@ -40,6 +40,17 @@ Create `.env.local` and add a Gemini API key:
 GEMINI_API_KEY=your_api_key_here
 ```
 
+To collect opted-in handwriting photos, add S3 upload settings. The bucket
+should stay private with Block Public Access enabled.
+
+```bash
+AWS_REGION=us-east-2
+AWS_S3_UPLOAD_BUCKET=handwrite-uploads-978324515050-us-east-2
+AWS_S3_UPLOAD_PREFIX=uploads
+AWS_ACCESS_KEY_ID=your_iam_access_key
+AWS_SECRET_ACCESS_KEY=your_iam_secret_key
+```
+
 For production, configure Redis-backed upload limiting with either Upstash Redis
 or Vercel KV-compatible REST variables:
 
@@ -77,7 +88,7 @@ src/app/
 src/lib/extraction/           Gemini response schemas and extraction constants
 src/lib/font/                 Glyph tracing, font generation, and worker code
 src/lib/images/               Upload normalization helpers
-src/lib/server/               Server-only environment helpers
+src/lib/server/               Server-only environment and storage helpers
 src/test/                     Test setup
 ```
 
@@ -85,14 +96,16 @@ src/test/                     Test setup
 
 1. The user uploads a photo of handwritten alphabet samples.
 2. The browser checks the file type and size, then normalizes the image to JPEG.
-3. The `/api/extract/analyze` route sends the image bytes to Gemini.
-4. Gemini returns structured glyph detections validated by local schemas.
-5. The browser starts a Web Worker to clean glyph masks, trace paths, and build a `.ttf`.
-6. The UI displays the generated font preview and download action.
+3. If the user opts in, the `/api/extract/analyze` route saves the normalized image to private S3 storage.
+4. The `/api/extract/analyze` route sends the image bytes to Gemini.
+5. Gemini returns structured glyph detections validated by local schemas.
+6. The browser starts a Web Worker to clean glyph masks, trace paths, and build a `.ttf`.
+7. The UI displays the generated font preview and download action.
 
 ## Notes
 
-- The app does not persist uploads or generated fonts.
+- The app only persists uploads when the user opts in. Generated fonts are not persisted.
 - `GEMINI_API_KEY` stays on the server and is never exposed to browser code.
+- AWS credentials stay on the server and are never exposed to browser code.
 - Production analysis uploads are capped at three valid photos per client IP.
 - Font fidelity depends on the photo: clear lighting, dark ink, and separated letters produce better glyphs.

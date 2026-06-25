@@ -1,9 +1,17 @@
 import type { AlphabetAnalysis } from "@/lib/extraction/schemas";
 import type { AnalyzeResponse } from "./upload-types";
 
-export async function analyzePhoto(photo: File): Promise<AlphabetAnalysis> {
+export async function analyzePhoto(
+  photo: File,
+  {
+    collectImage,
+  }: {
+    collectImage: boolean;
+  },
+): Promise<AlphabetAnalysis> {
   const formData = new FormData();
   formData.append("photo", photo);
+  formData.append("collectImage", collectImage ? "true" : "false");
 
   const response = await fetch("/api/extract/analyze", {
     method: "POST",

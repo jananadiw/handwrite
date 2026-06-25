@@ -4,6 +4,7 @@ import {
 } from "@/lib/extraction/constants";
 import { consumeAnalysisUploadQuota } from "@/lib/server/analysis-upload-rate-limit";
 import { analyzeAlphabetPhoto } from "@/lib/server/gemini/client";
+import { storeHandwritingUpload } from "@/lib/server/s3-upload-storage";
 
 type ErrorCode =
   | "missing_photo"
@@ -11,6 +12,7 @@ type ErrorCode =
   | "image_too_large"
   | "rate_limit_exceeded"
   | "rate_limit_unavailable"
+  | "image_collection_failed"
   | "missing_api_key"
   | "analysis_failed";
 
@@ -46,6 +48,7 @@ export async function POST(request: Request) {
   }
 
   const photo = formData.get("photo");
+  const collectImage = formData.get("collectImage") === "true";
 
   if (!(photo instanceof File)) {
     return errorResponse({
@@ -89,9 +92,39 @@ export async function POST(request: Request) {
     });
   }
 
+  let imageBytes: ArrayBuffer;
+
+  try {
+    imageBytes = await photo.arrayBuffer();
+  } catch {
+    return errorResponse({
+      code: "analysis_failed",
+      message: "We could not read that photo. Try another clear photo.",
+      status: 400,
+    });
+  }
+
+  if (collectImage) {
+    try {
+      await storeHandwritingUpload({
+        imageBytes,
+        mimeType: photo.type,
+      });
+    } catch (error) {
+      console.error("Failed to store handwriting upload", error);
+
+      return errorResponse({
+        code: "image_collection_failed",
+        message:
+          "We could not save your photo. Uncheck photo sharing or try again.",
+        status: 502,
+      });
+    }
+  }
+
   try {
     const analysis = await analyzeAlphabetPhoto({
-      imageBytes: await photo.arrayBuffer(),
+      imageBytes,
       mimeType: photo.type,
     });
 

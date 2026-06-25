@@ -8,6 +8,7 @@ import { PhotoDropZone } from "./photo-drop-zone";
 import { PhotoGuidelines } from "./photo-guidelines";
 import { ReplaceFontDialog } from "./replace-font-dialog";
 import { UploadActions } from "./upload-actions";
+import { UploadCollectionConsent } from "./upload-collection-consent";
 import { UploadLimitNotice } from "./upload-limit-notice";
 import { UploadState } from "./upload-state";
 import { UploadStepIndicator } from "./upload-step-indicator";
@@ -28,6 +29,7 @@ import type { AlphabetAnalysis } from "@/lib/extraction/schemas";
 
 export function UploadPhotoForm() {
   const inputId = useId();
+  const collectionConsentId = useId();
   const guidelinesId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<UploadStatus>("idle");
@@ -37,6 +39,7 @@ export function UploadPhotoForm() {
   const [analysis, setAnalysis] = useState<AlphabetAnalysis | null>(null);
   const [generatedFont, setGeneratedFont] =
     useState<GeneratedHandwritingFont | null>(null);
+  const [collectImage, setCollectImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showReplaceFontDialog, setShowReplaceFontDialog] = useState(false);
   const normalisedPhotoUrl = useMemo(
@@ -73,6 +76,7 @@ export function UploadPhotoForm() {
     setNormalisedPhoto(null);
     setAnalysis(null);
     setGeneratedFont(null);
+    setCollectImage(false);
     setError(null);
 
     if (!isPhotoFile(file)) {
@@ -118,6 +122,7 @@ export function UploadPhotoForm() {
     setNormalisedPhoto(null);
     setAnalysis(null);
     setGeneratedFont(null);
+    setCollectImage(false);
     setError(null);
     setShowReplaceFontDialog(false);
 
@@ -154,7 +159,9 @@ export function UploadPhotoForm() {
     let reachedGeneration = false;
 
     try {
-      const photoAnalysis = await analyzePhoto(normalisedPhoto.file);
+      const photoAnalysis = await analyzePhoto(normalisedPhoto.file, {
+        collectImage,
+      });
 
       if (!photoAnalysis.usable) {
         setStatus("ready");
@@ -236,6 +243,15 @@ export function UploadPhotoForm() {
               }
               photoPreviewUrl={normalisedPhotoUrl}
               status={status}
+            />
+          ) : null}
+
+          {status !== "generated" && normalisedPhoto ? (
+            <UploadCollectionConsent
+              checked={collectImage}
+              disabled={processing}
+              id={collectionConsentId}
+              onCheckedChange={setCollectImage}
             />
           ) : null}
 
