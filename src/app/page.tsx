@@ -19,9 +19,9 @@ export default function Home() {
         <Image
           alt="Animated handwriting font preview"
           className="h-[min(42vh,390px)] w-auto max-w-full"
-          height={371}
+          height={480}
           priority
-          src="/home-handwrite-preview.gif"
+          src="/home-handwrite-preview.webp"
           unoptimized
           width={480}
         />

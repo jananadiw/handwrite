@@ -24,11 +24,11 @@
 - Impact: Home and upload surfaces should use shared theme tokens and `paper-grid` instead of ad hoc colors or backgrounds.
 - Revisit: If the brand direction or accessibility requirements change.
 
-## 2026-06-19: Transparent Homepage Preview Video
-- Decision: Prefer a VP9 WebM with keyed transparency for the homepage handwriting preview, with the original MP4 as fallback.
-- Reason: CSS blending could not fully remove the opaque light video background in Chrome.
-- Impact: The preview sits directly on the paper grid while browsers without WebM support still have the original MP4.
-- Revisit: If Safari-grade alpha video support becomes required or the preview asset is redesigned.
+## 2026-06-26: Transparent Homepage Preview Animation
+- Decision: Use an animated transparent WebP for the homepage handwriting preview.
+- Reason: The source video needed audio removal and frame-level keying to remove paper/grid guide lines from the letter; CSS blending cannot remove baked-in lines.
+- Impact: The homepage preview remains an image asset with no audio track and sits directly on the paper grid.
+- Revisit: If broader animation format fallback, higher-fidelity rotoscoping, or video playback controls become required.
 
 ## 2026-06-08: Stateless Gemini Analysis Route
 - Decision: Use stateless Next.js API routes for Gemini calls, with `GEMINI_API_KEY` accessed only through a server env abstraction.
