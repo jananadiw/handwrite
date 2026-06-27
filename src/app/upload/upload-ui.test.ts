@@ -200,6 +200,7 @@ describe("upload UI DOM output", () => {
     expect(guidelinesIndex).toBeLessThan(exampleIndex);
     expect(html).toContain('src="/alphabet-preview.jpg"');
     expect(html).toContain("Upload a clear handwriting photo");
+    expect(html).not.toContain("You get 3 tries to analyze photos");
     expect(html).not.toContain("Tip:");
     expect(html).not.toContain('aria-label="Font creation steps"');
   });
