@@ -13,6 +13,7 @@ export function UploadActions({
   normalisedPhoto,
   onPrimaryAction,
   onSecondaryAction,
+  secondaryActionLabel = "Upload another photo",
   status,
 }: {
   generatedFont: GeneratedHandwritingFont | null;
@@ -20,6 +21,7 @@ export function UploadActions({
   normalisedPhoto: NormalisedJpeg | null;
   onPrimaryAction: () => void;
   onSecondaryAction?: () => void;
+  secondaryActionLabel?: string;
   status: UploadStatus;
 }) {
   const processing = isUploadProcessing(status);
@@ -33,7 +35,7 @@ export function UploadActions({
           onClick={onSecondaryAction}
           type="button"
         >
-          Upload another photo
+          {secondaryActionLabel}
         </button>
       ) : (
         <Link className={secondaryActionClass} href="/">

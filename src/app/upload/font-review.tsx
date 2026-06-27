@@ -1,10 +1,8 @@
 "use client";
 
 import { useId } from "react";
-import type { AlphabetAnalysis } from "@/lib/extraction/schemas";
 import { SUPPORTED_GLYPHS } from "@/lib/extraction/constants";
 import type { GeneratedHandwritingFont } from "@/lib/font/generate-handwriting-font";
-import { getAnalysisSummaryLines } from "./analysis-summary";
 
 const REVIEW_SAMPLE_ROWS = [
   "HANDWRITE",
@@ -20,17 +18,15 @@ const REVIEW_SAMPLE_ROWS = [
 ];
 
 export function FontReview({
-  analysis,
   generatedFont,
   fontUrl,
 }: {
-  analysis: AlphabetAnalysis | null;
   generatedFont: GeneratedHandwritingFont;
   fontUrl: string;
 }) {
   const fontId = useId().replace(/\W/g, "");
   const previewFamily = `handwrite-preview-${fontId}`;
-  const analysisLines = analysis ? getAnalysisSummaryLines(analysis) : null;
+  const generatedGlyphLine = `${generatedFont.generatedLetters.length} of ${SUPPORTED_GLYPHS.length} glyphs generated`;
 
   return (
     <section className="mt-6 ring-1 ring-ink/8 px-4 py-5 sm:px-5">
@@ -47,21 +43,9 @@ export function FontReview({
         <h2 className="mt-2 text-2xl font-medium leading-7 text-ink">
           Your .ttf is ready
         </h2>
-        {analysisLines ? (
-          <>
-            <p className="mt-2 text-base font-medium leading-6 text-ink">
-              {analysisLines.glyphLine}
-            </p>
-            <p className="mt-1 text-sm font-light leading-5 text-subtitle">
-              {analysisLines.issueLine}
-            </p>
-          </>
-        ) : (
-          <p className="mt-2 text-sm font-light leading-5 text-subtitle">
-            {generatedFont.generatedLetters.length}/{SUPPORTED_GLYPHS.length}{" "}
-            glyphs generated
-          </p>
-        )}
+        <p className="mt-2 text-base font-medium leading-6 text-ink">
+          {generatedGlyphLine}
+        </p>
       </div>
 
       <div className="mt-5 overflow-hidden bg-white px-4 py-5 shadow-[inset_0_0_24px_rgba(43,38,34,0.04)]">
@@ -78,9 +62,15 @@ export function FontReview({
       </div>
 
       {generatedFont.missingLetters.length > 0 ? (
-        <p className="mt-4 text-sm font-medium leading-6 text-ink">
-          Missing glyphs: {generatedFont.missingLetters.join(", ")}
-        </p>
+        <div className="mt-4 bg-linen px-4 py-4 ring-1 ring-ink/8">
+          <p className="text-sm font-medium leading-6 text-ink">
+            Missing glyphs: {generatedFont.missingLetters.join(", ")}
+          </p>
+          <p className="mt-1 text-sm font-light leading-6 text-subtitle">
+            Write these glyphs clearly and upload another photo to improve the
+            font.
+          </p>
+        </div>
       ) : null}
     </section>
   );

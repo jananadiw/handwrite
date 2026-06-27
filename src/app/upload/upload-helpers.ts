@@ -77,8 +77,8 @@ export function getUploadHeaderCopy(
   }
 
   return {
-    title: "Upload a clear alphabet photo",
-    subtitle: "Write A-Z and a-z on plain paper, then upload one straight photo.",
+    title: "Upload a clear handwriting photo",
+    subtitle: "Write anything, or use the recommended sentence for a fuller font.",
   };
 }
 

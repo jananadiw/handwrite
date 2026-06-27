@@ -1,13 +1,12 @@
-import type { AlphabetAnalysis } from "@/lib/extraction/schemas";
-import type { GeneratedHandwritingFont } from "@/lib/font/types";
+import type {
+  GeneratedHandwritingFont,
+  HandwritingFontSource,
+} from "@/lib/font/types";
 
 export type GenerateFontWorkerRequest = {
   type: "generate-font";
   id: string;
-  analysis: AlphabetAnalysis;
-  photo: Blob;
-  width: number;
-  height: number;
+  sources: HandwritingFontSource[];
 };
 
 export type GenerateFontWorkerResponse =

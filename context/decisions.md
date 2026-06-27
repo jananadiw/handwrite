@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-06-27: Progressive Capture
+- Decision: Let users upload any handwriting sample first, then add follow-up photos for missing glyphs while merging all usable captures into one generated font.
+- Reason: A random short sentence often lacks many letters; collecting only missing glyphs is more accurate than inventing them.
+- Impact: Font generation now accepts multiple analyzed photo sources and the upload UI guides users with a recommended full-coverage sentence up front.
+- Revisit: If the app adds trained glyph generation, in-browser glyph drawing, persistent sessions, or multi-font projects.
+
 ## 2026-06-24: Vercel Web Analytics
 - Decision: Use Vercel Web Analytics through `@vercel/analytics` mounted in the App Router root layout.
 - Reason: The app is deployed on Vercel and needs lightweight first-party pageview analytics without adding a separate analytics vendor.
