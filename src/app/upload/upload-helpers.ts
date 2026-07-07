@@ -1,3 +1,4 @@
+import type { AnalysisSource } from "@/lib/extraction/schemas";
 import type { UploadStatus } from "./upload-types";
 
 export type UploadStepId = "photo" | "analyze" | "font";
@@ -40,6 +41,7 @@ export function shouldShowUploadSteps(
 export function getUploadHeaderCopy(
   status: UploadStatus,
   hasFile: boolean,
+  source: AnalysisSource = "alphabet",
 ): UploadHeaderCopy {
   if (status === "generated") {
     return {
@@ -65,7 +67,10 @@ export function getUploadHeaderCopy(
   if (hasFile && (status === "ready" || status === "error" || status === "analyzed")) {
     return {
       title: "Photo added",
-      subtitle: "Tap Analyze photo to check your alphabet.",
+      subtitle:
+        source === "declaration-demo"
+          ? "Tap Analyze photo to build the Declaration demo font."
+          : "Tap Analyze photo to check your alphabet.",
     };
   }
 
@@ -73,6 +78,13 @@ export function getUploadHeaderCopy(
     return {
       title: "Adding your photo",
       subtitle: "Preparing your image…",
+    };
+  }
+
+  if (source === "declaration-demo") {
+    return {
+      title: "Upload the Declaration screenshot",
+      subtitle: "Use the July 4 demo image to generate a document-sourced .ttf.",
     };
   }
 

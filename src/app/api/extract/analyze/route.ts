@@ -2,6 +2,7 @@ import {
   MAX_ANALYSIS_IMAGE_BYTES,
   SUPPORTED_IMAGE_MIME_TYPES,
 } from "@/lib/extraction/constants";
+import { declarationDemoAnalysis } from "@/lib/extraction/declaration-demo-analysis";
 import { consumeAnalysisUploadQuota } from "@/lib/server/analysis-upload-rate-limit";
 import { analyzeAlphabetPhoto } from "@/lib/server/gemini/client";
 
@@ -69,6 +70,10 @@ export async function POST(request: Request) {
       message: "That photo is too large. Try a smaller image.",
       status: 413,
     });
+  }
+
+  if (formData.get("analysisSource") === "declaration-demo") {
+    return Response.json({ analysis: declarationDemoAnalysis });
   }
 
   try {

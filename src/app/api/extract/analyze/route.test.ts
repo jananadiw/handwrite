@@ -104,6 +104,34 @@ describe("POST /api/extract/analyze", () => {
     await expectError(response, 500, "missing_api_key");
   });
 
+  test("returns declaration demo analysis without Gemini configuration", async () => {
+    delete process.env[geminiApiKeyEnvName];
+
+    const formData = new FormData();
+    formData.append(
+      "photo",
+      new File([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], "letters.jpg", {
+        type: "image/jpeg",
+      }),
+    );
+    formData.append("analysisSource", "declaration-demo");
+
+    const response = await POST(
+      new Request("http://localhost/api/extract/analyze", {
+        method: "POST",
+        body: formData,
+      }),
+    );
+    const result = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(result.analysis).toMatchObject({
+      source: "declaration-demo",
+      usable: true,
+    });
+    expect(result.analysis.letters.length).toBeGreaterThan(0);
+  });
+
   test("rejects the fourth valid photo from the same IP before analysis", async () => {
     process.env[geminiApiKeyEnvName] = "test-api-key";
 

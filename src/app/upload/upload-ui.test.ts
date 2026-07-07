@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AlphabetSample } from "./alphabet-sample";
 import { AnalysisSummary, getAnalysisSummaryLines } from "./analysis-summary";
+import { FontReview } from "./font-review";
 import { PhotoDropZone } from "./photo-drop-zone";
 import { PhotoGuidelines } from "./photo-guidelines";
 import { ReplaceFontDialog } from "./replace-font-dialog";
@@ -64,10 +65,52 @@ const ALPHABET_IMAGE_SNIPPET = `<Image
         />`;
 
 const SAMPLE_ANALYSIS = {
+  source: "alphabet" as const,
   usable: true,
   rejectReason: null,
+  orientationDegrees: 0 as const,
   globalIssues: [],
-  letters: [{ char: "A" as const, issues: [] }],
+  letters: [
+    {
+      char: "A" as const,
+      box: [0, 0, 100, 100] as const,
+      confidence: 0.95,
+      issues: [],
+    },
+  ],
+};
+
+const SAMPLE_DECLARATION_ANALYSIS = {
+  source: "declaration-demo" as const,
+  usable: true,
+  orientationDegrees: 0 as const,
+  globalIssues: [],
+  letters: [
+    {
+      char: "a" as const,
+      box: [0, 0, 100, 100] as const,
+      confidence: 0.95,
+      issues: [],
+    },
+    {
+      char: "e" as const,
+      box: [0, 120, 100, 220] as const,
+      confidence: 0.95,
+      issues: [],
+    },
+    {
+      char: "h" as const,
+      box: [0, 240, 100, 340] as const,
+      confidence: 0.95,
+      issues: [],
+    },
+    {
+      char: "s" as const,
+      box: [0, 360, 100, 460] as const,
+      confidence: 0.95,
+      issues: [],
+    },
+  ],
 };
 
 const SAMPLE_GENERATED_FONT = {
@@ -82,7 +125,6 @@ const HANDLER_HEADERS = [
   "async function preparePhoto(file: File)",
   "function handleFiles(files: FileList | null)",
   "function handleDrop(event: React.DragEvent<HTMLLabelElement>)",
-  "async function handleContinue()",
   "function isPhotoFile(file: File)",
 ] as const;
 
@@ -230,6 +272,8 @@ describe("upload UI DOM output", () => {
 
     expect(dropZoneIndex).toBeLessThan(guidelinesIndex);
     expect(guidelinesIndex).toBeLessThan(exampleIndex);
+    expect(html).toContain("Alphabet sample");
+    expect(html).toContain("July 4 demo");
     expect(html).toContain('src="/alphabet-preview.jpg"');
     expect(html).toContain("Upload a clear alphabet photo");
     expect(html).not.toContain("Tip:");
@@ -252,6 +296,24 @@ describe("upload UI DOM output", () => {
     expect(html).toContain("Download .ttf");
     expect(html).toContain('href="/font.ttf"');
     expect(html).not.toContain('href="/"');
+  });
+
+  test("renders declaration demo review copy without missing-glyph list", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(FontReview, {
+        analysis: SAMPLE_DECLARATION_ANALYSIS,
+        generatedFont: {
+          ...SAMPLE_GENERATED_FONT,
+          generatedLetters: ["a", "e", "h", "s"],
+          missingLetters: ["A", "B"],
+        },
+        fontUrl: "/font.ttf",
+      }),
+    );
+
+    expect(html).toContain("demo glyphs selected");
+    expect(html).toContain("Demo font uses selected glyphs");
+    expect(html).not.toContain("Missing glyphs");
   });
 
   test("renders replace-font confirmation dialog with download option", () => {

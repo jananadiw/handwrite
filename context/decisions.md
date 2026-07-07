@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-07-03: July 4 Declaration Demo Fixture
+- Decision: Add a `declaration-demo` upload mode that uses curated glyph boxes from the provided Declaration screenshot instead of live model extraction.
+- Reason: The demo needs deterministic document-sourced font generation from connected cursive without training a handwriting model.
+- Impact: Demo analysis bypasses Gemini and upload quota, then reuses the existing browser-side font worker and review flow.
+- Revisit: If the app adds general historical-document extraction, multi-image glyph review, or a trained segmentation model.
+
 ## 2026-06-24: Vercel Web Analytics
 - Decision: Use Vercel Web Analytics through `@vercel/analytics` mounted in the App Router root layout.
 - Reason: The app is deployed on Vercel and needs lightweight first-party pageview analytics without adding a separate analytics vendor.

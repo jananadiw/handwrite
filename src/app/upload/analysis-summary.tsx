@@ -19,6 +19,13 @@ export function getAnalysisSummaryLines(
       0,
     );
 
+  if (analysis.source === "declaration-demo") {
+    return {
+      glyphLine: `${detectedLetters.size} demo glyphs selected from the Declaration screenshot`,
+      issueLine: "Curated boxes keep the demo deterministic without training.",
+    };
+  }
+
   return {
     glyphLine: `${detectedLetters.size} of ${SUPPORTED_GLYPHS.length} glyphs detected`,
     issueLine:

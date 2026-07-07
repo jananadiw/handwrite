@@ -24,7 +24,10 @@ import {
   type NormalisedJpeg,
   normaliseToJpeg,
 } from "@/lib/images/normalise-to-jpeg";
-import type { AlphabetAnalysis } from "@/lib/extraction/schemas";
+import type {
+  AlphabetAnalysis,
+  AnalysisSource,
+} from "@/lib/extraction/schemas";
 
 export function UploadPhotoForm() {
   const inputId = useId();
@@ -35,6 +38,8 @@ export function UploadPhotoForm() {
   const [normalisedPhoto, setNormalisedPhoto] =
     useState<NormalisedJpeg | null>(null);
   const [analysis, setAnalysis] = useState<AlphabetAnalysis | null>(null);
+  const [analysisSource, setAnalysisSource] =
+    useState<AnalysisSource>("alphabet");
   const [generatedFont, setGeneratedFont] =
     useState<GeneratedHandwritingFont | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +52,11 @@ export function UploadPhotoForm() {
     () => (generatedFont ? URL.createObjectURL(generatedFont.blob) : null),
     [generatedFont],
   );
-  const headerCopy = getUploadHeaderCopy(status, Boolean(sourceFile));
+  const headerCopy = getUploadHeaderCopy(
+    status,
+    Boolean(sourceFile),
+    analysisSource,
+  );
   const showSteps = shouldShowUploadSteps(status, Boolean(sourceFile));
   const processing = isUploadProcessing(status);
 
@@ -154,7 +163,10 @@ export function UploadPhotoForm() {
     let reachedGeneration = false;
 
     try {
-      const photoAnalysis = await analyzePhoto(normalisedPhoto.file);
+      const photoAnalysis = await analyzePhoto(
+        normalisedPhoto.file,
+        analysisSource,
+      );
 
       if (!photoAnalysis.usable) {
         setStatus("ready");
@@ -206,14 +218,25 @@ export function UploadPhotoForm() {
 
           {!sourceFile ? (
             <>
+              <AnalysisSourcePicker
+                disabled={processing}
+                onChange={setAnalysisSource}
+                value={analysisSource}
+              />
               <PhotoDropZone
                 describedById={guidelinesId}
                 inputId={inputId}
                 onDrop={handleDrop}
               />
-              <UploadLimitNotice />
-              <PhotoGuidelines id={guidelinesId} />
-              <AlphabetSample />
+              {analysisSource === "declaration-demo" ? (
+                <DeclarationDemoGuidelines id={guidelinesId} />
+              ) : (
+                <>
+                  <UploadLimitNotice />
+                  <PhotoGuidelines id={guidelinesId} />
+                  <AlphabetSample />
+                </>
+              )}
             </>
           ) : null}
 
@@ -284,4 +307,65 @@ export function UploadPhotoForm() {
 
 function isPhotoFile(file: File) {
   return file.type.startsWith("image/") || /\.(heic|heif)$/i.test(file.name);
+}
+
+function AnalysisSourcePicker({
+  disabled,
+  onChange,
+  value,
+}: {
+  disabled: boolean;
+  onChange: (value: AnalysisSource) => void;
+  value: AnalysisSource;
+}) {
+  return (
+    <fieldset className="mt-6">
+      <legend className="text-sm font-medium text-ink">Source</legend>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <button
+          aria-pressed={value === "alphabet"}
+          className={sourceButtonClassName(value === "alphabet")}
+          disabled={disabled}
+          onClick={() => onChange("alphabet")}
+          type="button"
+        >
+          Alphabet sample
+        </button>
+        <button
+          aria-pressed={value === "declaration-demo"}
+          className={sourceButtonClassName(value === "declaration-demo")}
+          disabled={disabled}
+          onClick={() => onChange("declaration-demo")}
+          type="button"
+        >
+          July 4 demo
+        </button>
+      </div>
+    </fieldset>
+  );
+}
+
+function sourceButtonClassName(selected: boolean) {
+  return `px-3 py-2 text-sm font-medium ring-1 transition ${
+    selected
+      ? "bg-button text-white ring-button"
+      : "bg-linen/80 text-ink ring-ink/12 hover:bg-periwinkle"
+  }`;
+}
+
+function DeclarationDemoGuidelines({ id }: { id: string }) {
+  return (
+    <div
+      className="mt-4 bg-periwinkle/60 px-4 py-4 text-left ring-1 ring-ink/8"
+      id={id}
+    >
+      <p className="text-sm font-medium leading-5 text-ink">
+        Upload the Declaration screenshot for the July 4 demo.
+      </p>
+      <p className="mt-1 text-sm font-light leading-5 text-subtitle">
+        This mode uses curated letter boxes from the provided document image so
+        the demo can generate a deterministic .ttf without model training.
+      </p>
+    </div>
+  );
 }
