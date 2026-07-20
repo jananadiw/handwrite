@@ -35,7 +35,12 @@ export const letterDetectionSchema = z.object({
   issues: z.array(z.string()).default([]),
 });
 
+export const analysisSourceSchema = z
+  .enum(["alphabet", "declaration-demo"])
+  .default("alphabet");
+
 export const alphabetAnalysisSchema = z.object({
+  source: analysisSourceSchema,
   usable: z.boolean(),
   rejectReason: z.string().optional(),
   orientationDegrees: z.union([
@@ -59,6 +64,7 @@ export const compactLetterDetectionSchema = z.object({
 });
 
 export const compactAlphabetAnalysisSchema = z.object({
+  source: analysisSourceSchema.optional(),
   usable: z.boolean(),
   rejectReason: z.string().optional(),
   orientationDegrees: z.union([
@@ -76,6 +82,7 @@ export type LetterChar = z.infer<typeof letterCharSchema>;
 export type NormalizedBox = z.infer<typeof normalizedBoxSchema>;
 export type PageCorners = z.infer<typeof pageCornersSchema>;
 export type LetterDetection = z.infer<typeof letterDetectionSchema>;
+export type AnalysisSource = z.infer<typeof analysisSourceSchema>;
 export type AlphabetAnalysis = z.infer<typeof alphabetAnalysisSchema>;
 export type CompactAlphabetAnalysis = z.infer<
   typeof compactAlphabetAnalysisSchema
@@ -115,6 +122,7 @@ export function expandCompactAlphabetAnalysis(
   compactAnalysis: CompactAlphabetAnalysis,
 ): AlphabetAnalysis {
   return alphabetAnalysisSchema.parse({
+    source: compactAnalysis.source ?? "alphabet",
     usable: compactAnalysis.usable,
     rejectReason: compactAnalysis.rejectReason,
     orientationDegrees: compactAnalysis.orientationDegrees,

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { HomeSpotlight } from "./home-spotlight";
 
 export default function Home() {
@@ -16,14 +15,14 @@ export default function Home() {
           </p>
         </div>
 
-        <Image
-          alt="Animated handwriting font preview"
+        <video
+          aria-label="Animated handwriting font preview"
+          autoPlay
           className="h-[min(42vh,390px)] w-auto max-w-full"
-          height={480}
-          priority
-          src="/home-handwrite-preview.webp"
-          unoptimized
-          width={480}
+          loop
+          muted
+          playsInline
+          src="/home-handwrite-preview.webm"
         />
 
         <a

@@ -19,6 +19,14 @@ const REVIEW_SAMPLE_ROWS = [
   "STUVWXYZ",
 ];
 
+const DECLARATION_DEMO_SAMPLE_ROWS = [
+  "we have warned them",
+  "he has refused",
+  "our native justice",
+  "all ages conditions",
+  "has made judges",
+];
+
 export function FontReview({
   analysis,
   generatedFont,
@@ -31,6 +39,11 @@ export function FontReview({
   const fontId = useId().replace(/\W/g, "");
   const previewFamily = `handwrite-preview-${fontId}`;
   const analysisLines = analysis ? getAnalysisSummaryLines(analysis) : null;
+  const sampleRows = getReviewSampleRows({
+    generatedLetters: generatedFont.generatedLetters,
+    source: analysis?.source ?? "alphabet",
+  });
+  const isDeclarationDemo = analysis?.source === "declaration-demo";
 
   return (
     <section className="mt-6 ring-1 ring-ink/8 px-4 py-5 sm:px-5">
@@ -69,7 +82,7 @@ export function FontReview({
           className="grid max-w-full gap-2 overflow-hidden text-[30px] leading-[1.15] tracking-normal text-ink sm:text-[40px]"
           style={{ fontFamily: `"${previewFamily}"` }}
         >
-          {REVIEW_SAMPLE_ROWS.map((sample) => (
+          {sampleRows.map((sample) => (
             <p className="max-w-full overflow-hidden break-all" key={sample}>
               {sample}
             </p>
@@ -77,11 +90,34 @@ export function FontReview({
         </div>
       </div>
 
-      {generatedFont.missingLetters.length > 0 ? (
+      {isDeclarationDemo ? (
+        <p className="mt-4 text-sm font-medium leading-6 text-ink">
+          Demo font uses selected glyphs from the Declaration screenshot.
+        </p>
+      ) : generatedFont.missingLetters.length > 0 ? (
         <p className="mt-4 text-sm font-medium leading-6 text-ink">
           Missing glyphs: {generatedFont.missingLetters.join(", ")}
         </p>
       ) : null}
     </section>
   );
+}
+
+function getReviewSampleRows({
+  generatedLetters,
+  source,
+}: {
+  generatedLetters: string[];
+  source: NonNullable<AlphabetAnalysis["source"]>;
+}) {
+  if (source !== "declaration-demo") {
+    return REVIEW_SAMPLE_ROWS;
+  }
+
+  const generated = new Set(generatedLetters);
+  const safeRows = DECLARATION_DEMO_SAMPLE_ROWS.filter((sample) =>
+    Array.from(sample).every((char) => char === " " || generated.has(char)),
+  );
+
+  return safeRows.length > 0 ? safeRows : [generatedLetters.join("")];
 }
