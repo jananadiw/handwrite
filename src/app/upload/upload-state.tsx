@@ -2,11 +2,12 @@ import Image from "next/image";
 import { AnalysisSummary } from "./analysis-summary";
 import type { AlphabetAnalysis } from "@/lib/extraction/schemas";
 import type { NormalisedJpeg } from "@/lib/images/normalise-to-jpeg";
-import { getFileExtension, isUploadProcessing } from "./upload-helpers";
+import { isUploadProcessing } from "./upload-helpers";
 import type { UploadStatus } from "./upload-types";
 
 export function UploadState({
   analysis,
+  error,
   file,
   normalisedPhoto,
   onChangePhoto,
@@ -14,6 +15,7 @@ export function UploadState({
   status,
 }: {
   analysis: AlphabetAnalysis | null;
+  error?: string | null;
   file: File | null;
   normalisedPhoto: NormalisedJpeg | null;
   onChangePhoto?: () => void;
@@ -27,94 +29,102 @@ export function UploadState({
   const processing = isUploadProcessing(status);
   const progress = getProgressWidth(status);
   const label = getUploadStateLabel({ analysis, normalisedPhoto, status });
-  const showInlineAnalysis =
-    analysis && (status === "generating" || status === "analyzed");
-
-  if (processing) {
-    return (
-      <div
-        aria-busy="true"
-        aria-live="polite"
-        className="mt-7 px-4 py-9 text-center ring-1 ring-ink/8 sm:px-8"
-        role="status"
-      >
-        <div
-          aria-hidden="true"
-          className="mx-auto h-16 w-16 animate-spin rounded-full border-2 border-linen border-t-button"
-        />
-        <p className="mt-6 text-lg font-medium leading-7 text-ink">{label}</p>
-        <p className="mx-auto mt-2 max-w-[360px] text-sm font-light leading-6 text-subtitle">
-          {status === "normalising"
-            ? "Preparing your photo for analysis."
-            : status === "analyzing"
-              ? "Reading every handwritten letter from your photo."
-              : "Building your downloadable TrueType font."}
-        </p>
-        <p className="mt-5 truncate text-sm font-medium text-muted">
-          {file.name}
-        </p>
-        <div
-          aria-valuetext={label}
-          className="mx-auto mt-5 h-1 max-w-[360px] bg-linen"
-          role="progressbar"
-        >
-          <div
-            className={`h-full bg-button transition-all duration-500 ${progress}`}
-          />
-        </div>
-      </div>
-    );
-  }
+  const showInlineAnalysis = analysis && status === "analyzed";
 
   return (
-    <div className="mt-6">
-      {onChangePhoto ? (
-        <div className="mb-3 text-center">
-          <button
-            className="text-sm font-medium text-subtitle underline-offset-2 hover:text-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-2"
-            onClick={onChangePhoto}
-            type="button"
-          >
-            Choose a different photo
-          </button>
-        </div>
-      ) : null}
-
+    <div className="mt-6 overflow-hidden border border-ink/12 bg-stone/80">
       <div
-        aria-busy="false"
+        aria-busy={processing}
         aria-live="polite"
-        className="ring-1 ring-ink/8 px-4 py-4"
+        className="relative"
         role="status"
       >
-        <div className="grid grid-cols-[56px_1fr] gap-4">
-          <div className="flex h-14 w-14 items-center justify-center bg-linen text-xs font-medium uppercase text-ink">
-            {getFileExtension(file.name)}
+        {processing ? (
+          <div
+            aria-valuetext={label}
+            className="absolute inset-x-0 top-0 z-10 h-1 bg-linen"
+            role="progressbar"
+          >
+            <div
+              className={`h-full bg-button transition-all duration-500 ${progress}`}
+            />
           </div>
-          <div className="min-w-0">
-            <p className="truncate text-base font-medium leading-6 text-ink">
-              {file.name}
-            </p>
-            <p className="mt-1 text-sm font-light leading-5 text-subtitle">
-              {label}
-            </p>
-            {showInlineAnalysis ? (
-              <AnalysisSummary analysis={analysis} variant="inline" />
-            ) : null}
-          </div>
-        </div>
+        ) : null}
 
         {photoPreviewUrl && normalisedPhoto ? (
-          <div className="mt-4 overflow-hidden bg-linen p-2">
+          <div className="relative overflow-hidden bg-linen">
             <Image
               alt="Selected handwriting photo preview"
-              className="max-h-[280px] w-full object-contain"
+              className={`max-h-[380px] min-h-[220px] w-full object-contain transition-opacity duration-300 ${
+                processing ? "opacity-55" : ""
+              }`}
               height={normalisedPhoto.height}
               unoptimized
               src={photoPreviewUrl}
               width={normalisedPhoto.width}
             />
+            {processing ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="flex items-center gap-3 bg-stone/95 px-4 py-3 shadow-[0_8px_24px_rgba(43,38,34,0.08)]">
+                  <span
+                    aria-hidden="true"
+                    className="h-4 w-4 animate-spin rounded-full border-2 border-linen border-t-button"
+                  />
+                  <span className="text-sm font-medium text-ink">{label}</span>
+                </div>
+              </div>
+            ) : null}
           </div>
-        ) : null}
+        ) : (
+          <div className="flex min-h-[220px] items-center justify-center bg-linen/65 px-6 text-center">
+            <div>
+              {processing ? (
+                <span
+                  aria-hidden="true"
+                  className="mx-auto block h-5 w-5 animate-spin rounded-full border-2 border-stone border-t-button"
+                />
+              ) : (
+                <span
+                  aria-hidden="true"
+                  className="mx-auto flex h-8 w-8 items-center justify-center border border-coral text-sm font-semibold text-coral"
+                >
+                  !
+                </span>
+              )}
+              <p className="mt-4 text-sm font-medium text-ink">{label}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-start justify-between gap-4 border-t border-ink/8 px-4 py-4 sm:px-5">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium leading-5 text-ink">
+              {file.name}
+            </p>
+            <p className="mt-1 text-sm leading-5 text-subtitle">{label}</p>
+            {showInlineAnalysis ? (
+              <AnalysisSummary analysis={analysis} variant="inline" />
+            ) : null}
+            {error ? (
+              <p
+                aria-live="assertive"
+                className="mt-2 text-sm font-medium leading-5 text-coral"
+                role="alert"
+              >
+                {error}
+              </p>
+            ) : null}
+          </div>
+          {onChangePhoto && !processing ? (
+            <button
+              className="min-h-11 shrink-0 text-sm font-medium text-subtitle underline decoration-ink/25 underline-offset-4 transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-2"
+              onClick={onChangePhoto}
+              type="button"
+            >
+              Change
+            </button>
+          ) : null}
+        </div>
       </div>
     </div>
   );
@@ -146,27 +156,31 @@ function getUploadStateLabel({
   status: UploadStatus;
 }) {
   if (status === "normalising") {
-    return "Adding photo…";
+    return "Preparing photo…";
   }
 
   if (status === "analyzing") {
-    return "Analyzing letters…";
+    return "Reading your handwriting…";
   }
 
   if (status === "generating") {
-    return "Creating font…";
+    return "Building your font…";
   }
 
   if (status === "generated") {
     return "Font ready";
   }
 
+  if (status === "error") {
+    return "Try another photo";
+  }
+
   if (analysis) {
-    return "Letters detected";
+    return "Handwriting detected";
   }
 
   if (normalisedPhoto) {
-    return "Photo added";
+    return "Ready to analyze";
   }
 
   return "Photo selected";

@@ -131,6 +131,28 @@
     line-height: var(--spotlight-cell);
 }
 
+.font-result-reveal {
+    animation: font-result-reveal 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes font-result-reveal {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .font-result-reveal {
+        animation: none;
+    }
+}
+
 .home-spotlight__letters--top {
     clip-path: polygon(0 0, 100% 0, 100% calc(50% - 180px), 0 calc(50% - 180px));
 }

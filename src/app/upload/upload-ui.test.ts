@@ -16,12 +16,7 @@ import { ReplaceFontDialog } from "./replace-font-dialog";
 import { UploadActions } from "./upload-actions";
 import { UploadPhotoForm } from "./upload-photo-form";
 import { UploadState } from "./upload-state";
-import { UploadStepIndicator } from "./upload-step-indicator";
-import {
-  getFileExtension,
-  getUploadHeaderCopy,
-  getUploadSteps,
-} from "./upload-helpers";
+import { getUploadHeaderCopy } from "./upload-helpers";
 
 mock.module("next/image", () => ({
   default: (
@@ -43,12 +38,11 @@ mock.module("next/link", () => ({
   default: ({
     children,
     href,
-    className,
-  }: {
+    ...props
+  }: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
     children: React.ReactNode;
     href: string;
-    className?: string;
-  }) => React.createElement("a", { href, className }, children),
+  }) => React.createElement("a", { href, ...props }, children),
 }));
 
 const uploadDir = join(import.meta.dir);
@@ -57,10 +51,10 @@ const readUploadSource = (fileName: string) =>
 
 const ALPHABET_IMAGE_SNIPPET = `<Image
           alt="Example of a clearly written uppercase and lowercase alphabet on white paper"
-          className="mx-auto h-auto w-[calc(100%-6px)]"
+          className="mx-auto h-auto w-full"
           height={2480}
           priority
-          sizes="(min-width: 768px) 642px, calc(100vw - 64px)"
+          sizes="(min-width: 768px) 560px, calc(100vw - 72px)"
           src="/alphabet-preview.jpg"
           width={3508}
         />`;
@@ -158,8 +152,8 @@ describe("upload UI DOM output", () => {
     expect(html).toContain(
       'alt="Example of a clearly written uppercase and lowercase alphabet on white paper"',
     );
-    expect(html).toContain('class="mx-auto h-auto w-[calc(100%-6px)]"');
-    expect(html).toContain("See a good example");
+    expect(html).toContain('class="mx-auto h-auto w-full"');
+    expect(html).toContain("Example photo");
   });
 
   test("renders accessible drop zone affordance", () => {
@@ -172,25 +166,29 @@ describe("upload UI DOM output", () => {
     );
 
     expect(html).toContain('aria-describedby="upload-guidelines"');
-    expect(html).toContain("Choose a photo");
+    expect(html).toContain("Choose a handwriting photo");
     expect(html).toContain("or drop it here");
-    expect(html).toContain("min-h-[188px]");
+    expect(html).toContain("JPG, PNG, WEBP, HEIC");
+    expect(html).toContain("min-h-[220px]");
     expect(html).toContain("border-dashed");
   });
 
-  test("renders scannable guidelines list", () => {
+  test("renders one progressive-disclosure guidance area", () => {
     const html = renderToStaticMarkup(
       React.createElement(PhotoGuidelines, { id: "upload-guidelines" }),
     );
 
     expect(html).toContain('id="upload-guidelines"');
-    expect(html).toContain("For best results, write:");
+    expect(html).toContain("Dark ink and good light work best.");
+    expect(html).toContain("How to get a better font");
+    expect(html).toContain("<details");
+    expect(html).toContain("For fuller coverage");
     expect(html).toContain(RECOMMENDED_HANDWRITING_SAMPLE);
     expect(html).toContain("Dark pen");
     expect(html).toContain("Plain paper");
     expect(html).toContain("Space letters");
+    expect(html).toContain("Example photo");
     expect(html).toContain("<ul");
-    expect(html).toContain("·");
     expect(html).not.toContain("Tip:");
   });
 
@@ -209,8 +207,8 @@ describe("upload UI DOM output", () => {
     expect(html).toContain('aria-live="polite"');
     expect(html).toContain('aria-busy="true"');
     expect(html).toContain('role="progressbar"');
-    expect(html).toContain("Analyzing letters…");
-    expect(html).toContain("heic");
+    expect(html).toContain("Reading your handwriting…");
+    expect(html).toContain("alphabet.heic");
   });
 
   test("embeds inline analysis summary inside upload state", () => {
@@ -230,39 +228,48 @@ describe("upload UI DOM output", () => {
     expect(html).not.toContain("Analysis complete");
   });
 
-  test("renders step indicator with aria-current on active step", () => {
+  test("keeps recovery beside the affected photo", () => {
     const html = renderToStaticMarkup(
-      React.createElement(UploadStepIndicator, { status: "ready" }),
+      React.createElement(UploadState, {
+        analysis: null,
+        error: "We could not read that photo.",
+        file: { name: "blurred.jpg" } as File,
+        normalisedPhoto: null,
+        onChangePhoto: () => undefined,
+        photoPreviewUrl: null,
+        status: "error",
+      }),
     );
 
-    expect(html).toContain('aria-label="Font creation steps"');
-    expect(html).toContain('aria-current="step"');
-    expect(html).toContain("Photo");
-    expect(html).toContain("Analyze");
-    expect(html).toContain("Font");
+    expect(html).toContain('role="alert"');
+    expect(html).toContain("We could not read that photo.");
+    expect(html).toContain("Try another photo");
+    expect(html).toContain(">Change<");
   });
 
-  test("renders idle upload form with upload first, checklist second, example last", () => {
+  test("renders idle upload form with the action before disclosed guidance", () => {
     const html = renderToStaticMarkup(React.createElement(UploadPhotoForm));
-    const dropZoneIndex = indexOfOrThrow(html, "Choose a photo");
+    const dropZoneIndex = indexOfOrThrow(html, "Choose a handwriting photo");
     const recommendedIndex = indexOfOrThrow(
       html,
       RECOMMENDED_HANDWRITING_SAMPLE,
     );
     const guidelinesIndex = indexOfOrThrow(html, "Dark pen");
-    const exampleIndex = indexOfOrThrow(html, "See a good example");
+    const exampleIndex = indexOfOrThrow(html, "Example photo");
 
     expect(dropZoneIndex).toBeLessThan(recommendedIndex);
     expect(recommendedIndex).toBeLessThan(guidelinesIndex);
     expect(guidelinesIndex).toBeLessThan(exampleIndex);
-    expect(html.match(/Choose a photo/g)).toHaveLength(1);
+    expect(html.match(/Choose a handwriting photo/g)).toHaveLength(1);
     expect(html).toContain('src="/alphabet-preview.jpg"');
-    expect(html).toContain("Upload a clear handwriting photo");
+    expect(html).toContain("Add your handwriting");
+    expect(html).toContain("Any clear handwriting photo works.");
+    expect(html).toContain('aria-label="HandWrite home"');
     expect(html).not.toContain("3 analyses included.");
     expect(html).not.toContain("July 4");
     expect(html).not.toContain("Source");
     expect(html).not.toContain("Tip:");
-    expect(html).not.toContain('aria-label="Font creation steps"');
+    expect(html).not.toContain(">Back<");
   });
 
   test("renders generated actions with re-upload and download controls", () => {
@@ -281,6 +288,8 @@ describe("upload UI DOM output", () => {
     expect(html).toContain("Download .ttf");
     expect(html).toContain('href="/font.ttf"');
     expect(html).not.toContain('href="/"');
+    expect(html).toContain("fixed inset-x-0 bottom-0");
+    expect(html).toContain("env(safe-area-inset-bottom)");
   });
 
   test("renders add-missing action when generated font is incomplete", () => {
@@ -311,7 +320,7 @@ describe("upload UI DOM output", () => {
 
     expect(html).toContain("2 of 52 glyphs generated");
     expect(html).toContain("Missing glyphs: B, b");
-    expect(html).toContain("Write these glyphs clearly");
+    expect(html).toContain("Add one more photo");
     expect(html).not.toContain("demo glyphs");
   });
 
@@ -354,16 +363,15 @@ describe("upload UI preservation", () => {
     expect(source).toContain(ALPHABET_IMAGE_SNIPPET);
   });
 
-  test("keeps alphabet sample scoped to the initial upload step", () => {
+  test("keeps guidance scoped to the initial upload step", () => {
     const formSource = readUploadSource("upload-photo-form.tsx");
     const dropZoneIndex = formSource.indexOf("<PhotoDropZone");
-    const sampleIndex = formSource.indexOf("<AlphabetSample />");
     const guidelinesIndex = formSource.indexOf("<PhotoGuidelines");
+    const guidelinesSource = readUploadSource("photo-guidelines.tsx");
 
     expect(dropZoneIndex).toBeGreaterThan(-1);
-    expect(sampleIndex).toBeGreaterThan(-1);
     expect(dropZoneIndex).toBeLessThan(guidelinesIndex);
-    expect(guidelinesIndex).toBeLessThan(sampleIndex);
+    expect(guidelinesSource).toContain("<AlphabetSample />");
     expect(formSource).toContain("{!sourceFile ? (");
     expect(formSource).toContain('{status !== "generated" ? (');
     expect(formSource).not.toContain("operationGuardRef");
@@ -395,34 +403,12 @@ describe("upload UI preservation", () => {
 });
 
 describe("upload presentation helpers", () => {
-  test("maps upload steps for ready and generated states", () => {
-    const readySteps = getUploadSteps("ready");
-    const generatedSteps = getUploadSteps("generated");
-
-    expect(readySteps.find((step) => step.id === "photo")?.state).toBe(
-      "complete",
-    );
-    expect(readySteps.find((step) => step.id === "analyze")?.state).toBe(
-      "current",
-    );
-    expect(generatedSteps.every((step) => step.state === "complete")).toBe(
-      true,
-    );
-  });
-
   test("returns phase-aware header copy", () => {
-    expect(getUploadHeaderCopy("idle", false).title).toBe(
-      "Upload a clear handwriting photo",
-    );
-    expect(getUploadHeaderCopy("ready", true).title).toBe("Photo added");
+    expect(getUploadHeaderCopy("idle", false).title).toBe("Add your handwriting");
+    expect(getUploadHeaderCopy("ready", true).title).toBe("Create your font");
     expect(getUploadHeaderCopy("generated", true).title).toBe(
-      "Your font is ready",
+      "Your font, made by you",
     );
-  });
-
-  test("derives file extensions for badges", () => {
-    expect(getFileExtension("alphabet.heic")).toBe("heic");
-    expect(getFileExtension("scan")).toBe("img");
   });
 
   test("formats analysis summary lines", () => {

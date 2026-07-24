@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { AlphabetSample } from "./alphabet-sample";
 import { analyzePhoto } from "./analyze-photo";
 import { FontReview } from "./font-review";
 import { PhotoDropZone } from "./photo-drop-zone";
@@ -10,12 +9,7 @@ import { PhotoGuidelines } from "./photo-guidelines";
 import { ReplaceFontDialog } from "./replace-font-dialog";
 import { UploadActions } from "./upload-actions";
 import { UploadState } from "./upload-state";
-import { UploadStepIndicator } from "./upload-step-indicator";
-import {
-  getUploadHeaderCopy,
-  isUploadProcessing,
-  shouldShowUploadSteps,
-} from "./upload-helpers";
+import { getUploadHeaderCopy, isUploadProcessing } from "./upload-helpers";
 import type { UploadStatus } from "./upload-types";
 import {
   createHandwritingFontSource,
@@ -58,7 +52,6 @@ export function UploadPhotoForm() {
     [generatedFont],
   );
   const headerCopy = getUploadHeaderCopy(status, Boolean(sourceFile));
-  const showSteps = shouldShowUploadSteps(status, Boolean(sourceFile));
   const processing = isUploadProcessing(status);
   const hasMissingGlyphs = Boolean(generatedFont?.missingLetters.length);
 
@@ -230,38 +223,36 @@ export function UploadPhotoForm() {
   }
 
   return (
-    <section className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-[680px] items-center justify-center">
-      <div className="flex w-full flex-col gap-3">
+    <section
+      className={`mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-[680px] items-start justify-center sm:min-h-[calc(100vh-5rem)] sm:items-center ${
+        sourceFile ? "pb-24 sm:pb-0" : ""
+      }`}
+    >
+      <div className="w-full bg-stone/95 px-5 py-5 shadow-[0_18px_50px_rgba(43,38,34,0.08)] ring-1 ring-ink/[0.06] backdrop-blur-[2px] sm:px-8 sm:py-7">
+        <header className="flex items-center justify-between">
+          <Link
+            aria-label="HandWrite home"
+            className="inline-flex min-h-11 items-center font-serif text-xl font-bold italic tracking-[-0.02em] text-title transition-colors hover:text-subtitle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-4"
+            href="/"
+          >
+            HandWrite
+          </Link>
+        </header>
+
         <div
           aria-busy={processing}
-          className="bg-stone/92 px-5 py-6 shadow-[0_16px_48px_rgba(43,38,34,0.07)] ring-1 ring-ink/[0.05] backdrop-blur-[2px] sm:px-8 sm:py-8"
+          className="mt-8 sm:mt-10"
         >
-          {!sourceFile ? (
-            <Link
-              className="inline-flex min-h-11 items-center text-sm font-medium text-subtitle transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-2"
-              href="/"
-            >
-              <span aria-hidden="true" className="mr-2">
-                ←
-              </span>
-              Back
-            </Link>
-          ) : null}
-
-          <div className={sourceFile ? "text-center" : "mt-5 text-left sm:mt-7"}>
-            <h1 className="font-serif text-[32px] font-bold italic leading-tight tracking-[-0.02em] text-title sm:text-[40px]">
+          <div className="text-left">
+            <h1 className="max-w-[600px] font-serif text-[36px] font-bold italic leading-[1.12] tracking-[-0.025em] text-title sm:text-[46px]">
               {headerCopy.title}
             </h1>
-            <p
-              className={`mt-2 text-base font-light leading-7 text-subtitle ${
-                sourceFile ? "" : "max-w-[480px]"
-              }`}
-            >
-              {headerCopy.subtitle}
-            </p>
+            {headerCopy.subtitle ? (
+              <p className="mt-3 max-w-[480px] text-base leading-7 text-subtitle">
+                {headerCopy.subtitle}
+              </p>
+            ) : null}
           </div>
-
-          {showSteps ? <UploadStepIndicator status={status} /> : null}
 
           {!sourceFile ? (
             <>
@@ -271,9 +262,6 @@ export function UploadPhotoForm() {
                 onDrop={handleDrop}
               />
               <PhotoGuidelines id={guidelinesId} />
-              <div className="mt-4 border-t border-ink/8 pt-4">
-                <AlphabetSample />
-              </div>
             </>
           ) : null}
 
@@ -289,6 +277,7 @@ export function UploadPhotoForm() {
           {status !== "generated" ? (
             <UploadState
               analysis={analysis}
+              error={error}
               file={sourceFile}
               normalisedPhoto={normalisedPhoto}
               onChangePhoto={
@@ -301,19 +290,10 @@ export function UploadPhotoForm() {
 
           {status === "generated" && generatedFont && generatedFontUrl ? (
             <FontReview
+              error={error}
               generatedFont={generatedFont}
               fontUrl={generatedFontUrl}
             />
-          ) : null}
-
-          {error ? (
-            <p
-              aria-live="assertive"
-              className="mt-4 text-sm font-medium leading-6 text-coral"
-              role="alert"
-            >
-              {error}
-            </p>
           ) : null}
         </div>
 
