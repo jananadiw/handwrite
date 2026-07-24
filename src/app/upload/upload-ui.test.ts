@@ -80,39 +80,6 @@ const SAMPLE_ANALYSIS = {
   ],
 };
 
-const SAMPLE_DECLARATION_ANALYSIS = {
-  source: "declaration-demo" as const,
-  usable: true,
-  orientationDegrees: 0 as const,
-  globalIssues: [],
-  letters: [
-    {
-      char: "a" as const,
-      box: [0, 0, 100, 100] as const,
-      confidence: 0.95,
-      issues: [],
-    },
-    {
-      char: "e" as const,
-      box: [0, 120, 100, 220] as const,
-      confidence: 0.95,
-      issues: [],
-    },
-    {
-      char: "h" as const,
-      box: [0, 240, 100, 340] as const,
-      confidence: 0.95,
-      issues: [],
-    },
-    {
-      char: "s" as const,
-      box: [0, 360, 100, 460] as const,
-      confidence: 0.95,
-      issues: [],
-    },
-  ],
-};
-
 const SAMPLE_GENERATED_FONT = {
   blob: new Blob(),
   familyName: "HandWrite",
@@ -185,7 +152,7 @@ describe("upload UI DOM output", () => {
       'alt="Example of a clearly written uppercase and lowercase alphabet on white paper"',
     );
     expect(html).toContain('class="mx-auto h-auto w-[calc(100%-6px)]"');
-    expect(html).toContain("View example alphabet photo");
+    expect(html).toContain("See a good example");
   });
 
   test("renders accessible drop zone affordance", () => {
@@ -199,8 +166,8 @@ describe("upload UI DOM output", () => {
 
     expect(html).toContain('aria-describedby="upload-guidelines"');
     expect(html).toContain("Choose a photo");
-    expect(html).toContain("or drag and drop here");
-    expect(html).toContain("min-h-[148px]");
+    expect(html).toContain("or drop it here");
+    expect(html).toContain("min-h-[188px]");
     expect(html).toContain("border-dashed");
   });
 
@@ -210,9 +177,11 @@ describe("upload UI DOM output", () => {
     );
 
     expect(html).toContain('id="upload-guidelines"');
-    expect(html).toContain("Write A-Z and a-z");
+    expect(html).toContain("Dark pen");
+    expect(html).toContain("Plain paper");
+    expect(html).toContain("Space letters");
     expect(html).toContain("<ul");
-    expect(html).toContain("|");
+    expect(html).toContain("·");
     expect(html).not.toContain("Tip:");
   });
 
@@ -267,15 +236,17 @@ describe("upload UI DOM output", () => {
   test("renders idle upload form with upload first, checklist second, example last", () => {
     const html = renderToStaticMarkup(React.createElement(UploadPhotoForm));
     const dropZoneIndex = indexOfOrThrow(html, "Choose a photo");
-    const guidelinesIndex = indexOfOrThrow(html, "Use dark pen on white paper");
-    const exampleIndex = indexOfOrThrow(html, "View example alphabet photo");
+    const guidelinesIndex = indexOfOrThrow(html, "Dark pen");
+    const exampleIndex = indexOfOrThrow(html, "See a good example");
 
     expect(dropZoneIndex).toBeLessThan(guidelinesIndex);
     expect(guidelinesIndex).toBeLessThan(exampleIndex);
-    expect(html).toContain("Alphabet sample");
-    expect(html).toContain("July 4 demo");
+    expect(html.match(/Choose a photo/g)).toHaveLength(1);
     expect(html).toContain('src="/alphabet-preview.jpg"');
-    expect(html).toContain("Upload a clear alphabet photo");
+    expect(html).toContain("Add your alphabet");
+    expect(html).toContain("3 analyses included.");
+    expect(html).not.toContain("July 4");
+    expect(html).not.toContain("Source");
     expect(html).not.toContain("Tip:");
     expect(html).not.toContain('aria-label="Font creation steps"');
   });
@@ -298,22 +269,20 @@ describe("upload UI DOM output", () => {
     expect(html).not.toContain('href="/"');
   });
 
-  test("renders declaration demo review copy without missing-glyph list", () => {
+  test("renders missing glyphs for an incomplete generated font", () => {
     const html = renderToStaticMarkup(
       React.createElement(FontReview, {
-        analysis: SAMPLE_DECLARATION_ANALYSIS,
+        analysis: SAMPLE_ANALYSIS,
         generatedFont: {
           ...SAMPLE_GENERATED_FONT,
-          generatedLetters: ["a", "e", "h", "s"],
           missingLetters: ["A", "B"],
         },
         fontUrl: "/font.ttf",
       }),
     );
 
-    expect(html).toContain("demo glyphs selected");
-    expect(html).toContain("Demo font uses selected glyphs");
-    expect(html).not.toContain("Missing glyphs");
+    expect(html).toContain("Missing glyphs: A, B");
+    expect(html).not.toContain("demo glyphs");
   });
 
   test("renders replace-font confirmation dialog with download option", () => {
