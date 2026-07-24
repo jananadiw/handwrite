@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-07-23: Task-First Upload UI
+- Decision: Keep one primary action per upload state and progressively disclose supporting guidance.
+- Reason: The upload path should be clear within seconds without hiding recovery help.
+- Impact: Quota, examples, and tips stay lightweight; alternate demo modes do not compete with the core alphabet flow.
+- Revisit: If the app adds multiple supported input workflows.
+
 ## 2026-06-27: Progressive Capture
 - Decision: Let users upload any handwriting sample first, then add follow-up photos for missing glyphs while merging all usable captures into one generated font.
 - Reason: A random short sentence often lacks many letters; collecting only missing glyphs is more accurate than inventing them.

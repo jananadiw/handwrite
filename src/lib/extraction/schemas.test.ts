@@ -29,5 +29,8 @@ describe("alphabet analysis schemas", () => {
         issues: [],
       },
     ]);
+    expect(expandCompactAlphabetAnalysis(compactAnalysis).source).toBe(
+      "alphabet",
+    );
   });
 });

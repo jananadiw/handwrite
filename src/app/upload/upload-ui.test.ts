@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
 import React, { type ImgHTMLAttributes } from "react";
+import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -65,10 +66,19 @@ const ALPHABET_IMAGE_SNIPPET = `<Image
         />`;
 
 const SAMPLE_ANALYSIS = {
+  source: "alphabet" as const,
   usable: true,
   rejectReason: null,
+  orientationDegrees: 0 as const,
   globalIssues: [],
-  letters: [{ char: "A" as const, issues: [] }],
+  letters: [
+    {
+      char: "A" as const,
+      box: [0, 0, 100, 100] as const,
+      confidence: 0.95,
+      issues: [],
+    },
+  ],
 };
 
 const SAMPLE_GENERATED_FONT = {
@@ -84,6 +94,51 @@ const SAMPLE_PARTIAL_FONT = {
   generatedLetters: ["A", "a"],
   missingLetters: ["B", "b"],
 };
+
+const HANDLER_HEADERS = [
+  "async function preparePhoto(file: File)",
+  "function handleFiles(files: FileList | null)",
+  "function handleDrop(event: React.DragEvent<HTMLLabelElement>)",
+  "function isPhotoFile(file: File)",
+] as const;
+
+function normalizeBody(body: string) {
+  return body.replace(/\s+/g, " ").trim();
+}
+
+function extractFunctionBody(source: string, functionHeader: string) {
+  const start = source.indexOf(functionHeader);
+
+  if (start === -1) {
+    throw new Error(`Missing handler: ${functionHeader}`);
+  }
+
+  const openBrace = source.indexOf("{", start + functionHeader.length);
+  let depth = 0;
+
+  for (let index = openBrace; index < source.length; index++) {
+    const char = source[index];
+
+    if (char === "{") {
+      depth += 1;
+    } else if (char === "}") {
+      depth -= 1;
+
+      if (depth === 0) {
+        return normalizeBody(source.slice(openBrace + 1, index));
+      }
+    }
+  }
+
+  throw new Error(`Could not extract body for ${functionHeader}`);
+}
+
+function readBaselineFormSource() {
+  return execSync("git show HEAD:src/app/upload/upload-photo-form.tsx", {
+    cwd: join(uploadDir, "../.."),
+    encoding: "utf8",
+  });
+}
 
 function indexOfOrThrow(haystack: string, needle: string) {
   const index = haystack.indexOf(needle);
@@ -104,7 +159,7 @@ describe("upload UI DOM output", () => {
       'alt="Example of a clearly written uppercase and lowercase alphabet on white paper"',
     );
     expect(html).toContain('class="mx-auto h-auto w-[calc(100%-6px)]"');
-    expect(html).toContain("View example alphabet photo");
+    expect(html).toContain("See a good example");
   });
 
   test("renders accessible drop zone affordance", () => {
@@ -118,8 +173,8 @@ describe("upload UI DOM output", () => {
 
     expect(html).toContain('aria-describedby="upload-guidelines"');
     expect(html).toContain("Choose a photo");
-    expect(html).toContain("or drag and drop here");
-    expect(html).toContain("min-h-[148px]");
+    expect(html).toContain("or drop it here");
+    expect(html).toContain("min-h-[188px]");
     expect(html).toContain("border-dashed");
   });
 
@@ -131,9 +186,11 @@ describe("upload UI DOM output", () => {
     expect(html).toContain('id="upload-guidelines"');
     expect(html).toContain("For best results, write:");
     expect(html).toContain(RECOMMENDED_HANDWRITING_SAMPLE);
-    expect(html).toContain("Write anything you like");
+    expect(html).toContain("Dark pen");
+    expect(html).toContain("Plain paper");
+    expect(html).toContain("Space letters");
     expect(html).toContain("<ul");
-    expect(html).toContain("|");
+    expect(html).toContain("·");
     expect(html).not.toContain("Tip:");
   });
 
@@ -192,15 +249,18 @@ describe("upload UI DOM output", () => {
       html,
       RECOMMENDED_HANDWRITING_SAMPLE,
     );
-    const guidelinesIndex = indexOfOrThrow(html, "Use dark pen on white paper");
-    const exampleIndex = indexOfOrThrow(html, "View example alphabet photo");
+    const guidelinesIndex = indexOfOrThrow(html, "Dark pen");
+    const exampleIndex = indexOfOrThrow(html, "See a good example");
 
     expect(dropZoneIndex).toBeLessThan(recommendedIndex);
     expect(recommendedIndex).toBeLessThan(guidelinesIndex);
     expect(guidelinesIndex).toBeLessThan(exampleIndex);
+    expect(html.match(/Choose a photo/g)).toHaveLength(1);
     expect(html).toContain('src="/alphabet-preview.jpg"');
     expect(html).toContain("Upload a clear handwriting photo");
-    expect(html).not.toContain("You get 3 tries to analyze photos");
+    expect(html).not.toContain("3 analyses included.");
+    expect(html).not.toContain("July 4");
+    expect(html).not.toContain("Source");
     expect(html).not.toContain("Tip:");
     expect(html).not.toContain('aria-label="Font creation steps"');
   });
@@ -252,6 +312,7 @@ describe("upload UI DOM output", () => {
     expect(html).toContain("2 of 52 glyphs generated");
     expect(html).toContain("Missing glyphs: B, b");
     expect(html).toContain("Write these glyphs clearly");
+    expect(html).not.toContain("demo glyphs");
   });
 
   test("renders replace-font confirmation dialog with download option", () => {
@@ -307,6 +368,17 @@ describe("upload UI preservation", () => {
     expect(formSource).toContain('{status !== "generated" ? (');
     expect(formSource).not.toContain("operationGuardRef");
     expect(formSource).not.toContain("createOperationGuard");
+  });
+
+  test("preserves the existing photo handlers while adding progressive capture", () => {
+    const currentSource = readUploadSource("upload-photo-form.tsx");
+    const baselineSource = readBaselineFormSource();
+
+    for (const header of HANDLER_HEADERS) {
+      expect(extractFunctionBody(currentSource, header)).toBe(
+        extractFunctionBody(baselineSource, header),
+      );
+    }
   });
 
   test("wires progressive capture without replacing the first font on supplemental upload", () => {

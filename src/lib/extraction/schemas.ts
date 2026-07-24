@@ -36,6 +36,7 @@ export const letterDetectionSchema = z.object({
 });
 
 export const alphabetAnalysisSchema = z.object({
+  source: z.literal("alphabet").default("alphabet"),
   usable: z.boolean(),
   rejectReason: z.string().optional(),
   orientationDegrees: z.union([
@@ -59,6 +60,7 @@ export const compactLetterDetectionSchema = z.object({
 });
 
 export const compactAlphabetAnalysisSchema = z.object({
+  source: z.literal("alphabet").optional(),
   usable: z.boolean(),
   rejectReason: z.string().optional(),
   orientationDegrees: z.union([
@@ -115,6 +117,7 @@ export function expandCompactAlphabetAnalysis(
   compactAnalysis: CompactAlphabetAnalysis,
 ): AlphabetAnalysis {
   return alphabetAnalysisSchema.parse({
+    source: compactAnalysis.source ?? "alphabet",
     usable: compactAnalysis.usable,
     rejectReason: compactAnalysis.rejectReason,
     orientationDegrees: compactAnalysis.orientationDegrees,

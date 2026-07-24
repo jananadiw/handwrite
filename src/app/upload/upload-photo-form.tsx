@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { AlphabetSample } from "./alphabet-sample";
 import { analyzePhoto } from "./analyze-photo";
@@ -229,17 +230,33 @@ export function UploadPhotoForm() {
   }
 
   return (
-    <section className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-[720px] items-center justify-center">
-      <div className="flex w-full flex-col gap-4">
+    <section className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-[680px] items-center justify-center">
+      <div className="flex w-full flex-col gap-3">
         <div
           aria-busy={processing}
-          className="bg-stone/95 px-5 py-6 shadow-[0_12px_36px_rgba(43,38,34,0.08)] sm:px-7 sm:py-7"
+          className="bg-stone/92 px-5 py-6 shadow-[0_16px_48px_rgba(43,38,34,0.07)] ring-1 ring-ink/[0.05] backdrop-blur-[2px] sm:px-8 sm:py-8"
         >
-          <div className="text-center">
-            <h1 className="font-serif text-3xl font-bold italic leading-tight tracking-normal text-title sm:text-[38px]">
+          {!sourceFile ? (
+            <Link
+              className="inline-flex min-h-11 items-center text-sm font-medium text-subtitle transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-2"
+              href="/"
+            >
+              <span aria-hidden="true" className="mr-2">
+                ←
+              </span>
+              Back
+            </Link>
+          ) : null}
+
+          <div className={sourceFile ? "text-center" : "mt-5 text-left sm:mt-7"}>
+            <h1 className="font-serif text-[32px] font-bold italic leading-tight tracking-[-0.02em] text-title sm:text-[40px]">
               {headerCopy.title}
             </h1>
-            <p className="mt-2 text-base font-light leading-7 text-subtitle">
+            <p
+              className={`mt-2 text-base font-light leading-7 text-subtitle ${
+                sourceFile ? "" : "max-w-[480px]"
+              }`}
+            >
               {headerCopy.subtitle}
             </p>
           </div>
@@ -254,7 +271,9 @@ export function UploadPhotoForm() {
                 onDrop={handleDrop}
               />
               <PhotoGuidelines id={guidelinesId} />
-              <AlphabetSample />
+              <div className="mt-4 border-t border-ink/8 pt-4">
+                <AlphabetSample />
+              </div>
             </>
           ) : null}
 
@@ -298,23 +317,25 @@ export function UploadPhotoForm() {
           ) : null}
         </div>
 
-        <UploadActions
-          generatedFont={generatedFont}
-          generatedFontUrl={generatedFontUrl}
-          normalisedPhoto={normalisedPhoto}
-          onPrimaryAction={() => void handleContinue()}
-          onSecondaryAction={
-            status === "generated"
-              ? hasMissingGlyphs
-                ? handleAddMissingLetters
-                : handleUploadAnotherPhoto
-              : undefined
-          }
-          secondaryActionLabel={
-            hasMissingGlyphs ? "Add missing letters" : "Upload another photo"
-          }
-          status={status}
-        />
+        {sourceFile ? (
+          <UploadActions
+            generatedFont={generatedFont}
+            generatedFontUrl={generatedFontUrl}
+            normalisedPhoto={normalisedPhoto}
+            onPrimaryAction={() => void handleContinue()}
+            onSecondaryAction={
+              status === "generated"
+                ? hasMissingGlyphs
+                  ? handleAddMissingLetters
+                  : handleUploadAnotherPhoto
+                : undefined
+            }
+            secondaryActionLabel={
+              hasMissingGlyphs ? "Add missing letters" : "Upload another photo"
+            }
+            status={status}
+          />
+        ) : null}
 
         {showReplaceFontDialog && generatedFont && generatedFontUrl ? (
           <ReplaceFontDialog

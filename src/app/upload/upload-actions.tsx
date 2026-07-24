@@ -25,10 +25,10 @@ export function UploadActions({
   status: UploadStatus;
 }) {
   const processing = isUploadProcessing(status);
-  const secondaryActionClass = `flex h-14 items-center justify-center bg-stone text-sm font-medium text-ink ring-1 ring-ink/8 hover:bg-linen ${actionFocusClass}`;
+  const secondaryActionClass = `order-2 flex h-14 items-center justify-center bg-stone text-sm font-medium text-ink ring-1 ring-ink/8 transition-colors hover:bg-linen sm:order-1 ${actionFocusClass}`;
 
   return (
-    <div className="grid grid-cols-2 gap-5">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
       {onSecondaryAction ? (
         <button
           className={secondaryActionClass}
@@ -44,7 +44,7 @@ export function UploadActions({
       )}
       {status === "generated" && generatedFont && generatedFontUrl ? (
         <a
-          className={`flex h-14 items-center justify-center bg-button text-sm font-medium text-button-foreground hover:bg-button-hover ${actionFocusClass}`}
+          className={`order-1 flex h-14 items-center justify-center bg-button text-sm font-medium text-button-foreground transition-colors hover:bg-button-hover sm:order-2 ${actionFocusClass}`}
           download={generatedFont.fileName}
           href={generatedFontUrl}
         >
@@ -53,7 +53,7 @@ export function UploadActions({
       ) : (
         <button
           aria-busy={processing}
-          className={`flex h-14 items-center justify-center bg-button text-sm font-medium text-button-foreground hover:bg-button-hover disabled:cursor-not-allowed disabled:bg-muted disabled:shadow-none ${actionFocusClass}`}
+          className={`order-1 flex h-14 items-center justify-center bg-button text-sm font-medium text-button-foreground transition-colors hover:bg-button-hover disabled:cursor-not-allowed disabled:bg-muted disabled:shadow-none sm:order-2 ${actionFocusClass}`}
           disabled={processing}
           onClick={onPrimaryAction}
           type="button"
