@@ -224,11 +224,16 @@ export function UploadPhotoForm() {
 
   return (
     <section
-      className={`mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-[680px] items-start justify-center sm:min-h-[calc(100vh-5rem)] sm:items-center ${
+      className={`mx-auto flex h-full min-h-0 w-full max-w-[680px] items-start justify-center sm:items-center ${
         sourceFile ? "pb-24 sm:pb-0" : ""
       }`}
     >
-      <div className="w-full bg-stone/95 px-5 py-5 shadow-[0_18px_50px_rgba(43,38,34,0.08)] ring-1 ring-ink/[0.06] backdrop-blur-[2px] sm:px-8 sm:py-7">
+      <div
+        aria-label="Upload workspace"
+        className="upload-scroll max-h-full w-full overflow-x-hidden overflow-y-auto overscroll-y-contain bg-stone/95 px-5 py-5 shadow-[0_18px_50px_rgba(43,38,34,0.08)] ring-1 ring-ink/[0.06] backdrop-blur-[2px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-2 sm:px-8 sm:py-7"
+        role="region"
+        tabIndex={0}
+      >
         <header className="flex items-center justify-between">
           <Link
             aria-label="HandWrite home"
