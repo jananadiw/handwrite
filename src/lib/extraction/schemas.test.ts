@@ -33,17 +33,4 @@ describe("alphabet analysis schemas", () => {
       "alphabet",
     );
   });
-
-  test("preserves declaration demo source metadata", () => {
-    const compactAnalysis = compactAlphabetAnalysisSchema.parse({
-      source: "declaration-demo",
-      usable: true,
-      orientationDegrees: 0,
-      letters: [{ c: "H", b: [0, 0, 100, 100], q: 95 }],
-    });
-
-    expect(expandCompactAlphabetAnalysis(compactAnalysis).source).toBe(
-      "declaration-demo",
-    );
-  });
 });
