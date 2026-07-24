@@ -56,6 +56,30 @@
         100% 100%;
 }
 
+.upload-scroll {
+    scrollbar-color: color-mix(in srgb, var(--color-ink) 22%, transparent) transparent;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+}
+
+.upload-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.upload-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.upload-scroll::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--color-ink) 18%, transparent);
+}
+
+.upload-scroll:hover::-webkit-scrollbar-thumb,
+.upload-scroll:focus-visible::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--color-ink) 28%, transparent);
+}
+
 .home-spotlight {
     --spotlight-x: 50vw;
     --spotlight-y: 48vh;
