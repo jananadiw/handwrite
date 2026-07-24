@@ -17,10 +17,10 @@ export function PhotoDropZone({
   return (
     <label
       aria-describedby={describedById}
-      className={`group mt-7 flex min-h-[188px] w-full cursor-pointer flex-col items-center justify-center border border-dashed px-6 py-8 text-center transition-[background-color,border-color,box-shadow] duration-200 focus-within:ring-2 focus-within:ring-button/50 focus-within:ring-offset-2 ${
+      className={`group mt-8 flex min-h-[220px] w-full cursor-pointer flex-col items-center justify-center border border-dashed px-6 py-10 text-center transition-[background-color,border-color,box-shadow,transform] duration-200 focus-within:ring-2 focus-within:ring-button/60 focus-within:ring-offset-4 ${
         isDragging
-          ? "border-button bg-periwinkle/80 shadow-[inset_0_0_0_1px_var(--color-button)]"
-          : "border-ink/18 bg-linen/50 hover:border-ink/30 hover:bg-periwinkle/65"
+          ? "scale-[0.995] border-button bg-periwinkle shadow-[inset_0_0_0_1px_var(--color-button)]"
+          : "border-ink/25 bg-linen/55 hover:border-button hover:bg-periwinkle/70"
       }`}
       htmlFor={inputId}
       onDragEnter={() => setIsDragging(true)}
@@ -34,16 +34,17 @@ export function PhotoDropZone({
       <Image
         alt=""
         aria-hidden="true"
-        className="h-9 w-9 motion-safe:transition-transform motion-safe:duration-200 group-hover:-translate-y-0.5"
-        height={36}
+        className="h-10 w-10 motion-safe:transition-transform motion-safe:duration-200 group-hover:-translate-y-1"
+        height={40}
         src="/icons/upload.svg"
-        width={36}
+        width={40}
       />
-      <span className="mt-4 text-lg font-semibold leading-7 text-ink">
-        Choose a photo
+      <span className="mt-5 text-lg font-semibold leading-7 text-ink">
+        Choose a handwriting photo
       </span>
-      <span className="mt-1 text-sm font-normal text-muted">
-        or drop it here
+      <span className="mt-1 text-sm text-subtitle">
+        <span className="sm:hidden">JPG, PNG, WEBP, HEIC</span>
+        <span className="hidden sm:inline">or drop it here</span>
       </span>
     </label>
   );

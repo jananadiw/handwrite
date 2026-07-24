@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 import { MAX_ANALYSIS_IMAGE_BYTES } from "@/lib/extraction/constants";
+import { resetLocalAnalysisUploadQuota } from "@/lib/server/analysis-upload-rate-limit";
 
 mock.module("@/lib/server/gemini/client", () => ({
   analyzeAlphabetPhoto: async () => {
@@ -22,6 +23,8 @@ const geminiApiKeyEnvName = "GEMINI_API" + "_KEY";
 const originalGeminiApiKey = process.env[geminiApiKeyEnvName];
 
 afterEach(() => {
+  resetLocalAnalysisUploadQuota();
+
   if (originalGeminiApiKey === undefined) {
     delete process.env[geminiApiKeyEnvName];
     return;
@@ -101,7 +104,7 @@ describe("POST /api/extract/analyze", () => {
     await expectError(response, 500, "missing_api_key");
   });
 
-  test("allows repeated valid photos while upload limits are disabled", async () => {
+  test("allows three valid photos and rejects the fourth for one client", async () => {
     process.env[geminiApiKeyEnvName] = "test-api-key";
 
     const firstResponse = await POST(validPhotoRequest());
@@ -112,11 +115,51 @@ describe("POST /api/extract/analyze", () => {
     expect(firstResponse.status).toBe(200);
     expect(secondResponse.status).toBe(200);
     expect(thirdResponse.status).toBe(200);
-    expect(fourthResponse.status).toBe(200);
+    await expectError(fourthResponse, 429, "upload_limit_reached");
+  });
+
+  test("tracks upload limits separately for each client IP", async () => {
+    process.env[geminiApiKeyEnvName] = "test-api-key";
+
+    await POST(validPhotoRequest("203.0.113.1"));
+    await POST(validPhotoRequest("203.0.113.1"));
+    await POST(validPhotoRequest("203.0.113.1"));
+
+    const otherClientResponse = await POST(validPhotoRequest("203.0.113.2"));
+
+    expect(otherClientResponse.status).toBe(200);
+  });
+
+  test("does not count invalid files toward the upload limit", async () => {
+    process.env[geminiApiKeyEnvName] = "test-api-key";
+    const invalidFormData = new FormData();
+    invalidFormData.append(
+      "photo",
+      new File(["not an image"], "letters.txt", { type: "text/plain" }),
+    );
+
+    await POST(
+      new Request("http://localhost/api/extract/analyze", {
+        method: "POST",
+        body: invalidFormData,
+        headers: {
+          "x-forwarded-for": "203.0.113.1",
+        },
+      }),
+    );
+
+    expect((await POST(validPhotoRequest())).status).toBe(200);
+    expect((await POST(validPhotoRequest())).status).toBe(200);
+    expect((await POST(validPhotoRequest())).status).toBe(200);
+    await expectError(
+      await POST(validPhotoRequest()),
+      429,
+      "upload_limit_reached",
+    );
   });
 });
 
-function validPhotoRequest() {
+function validPhotoRequest(clientIp = "203.0.113.1") {
   const formData = new FormData();
   formData.append(
     "photo",
@@ -129,7 +172,7 @@ function validPhotoRequest() {
     method: "POST",
     body: formData,
     headers: {
-      "x-forwarded-for": "203.0.113.1",
+      "x-forwarded-for": clientIp,
     },
   });
 }

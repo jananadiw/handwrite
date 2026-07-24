@@ -1,9 +1,9 @@
 # Decisions
 
 ## 2026-07-23: Task-First Upload UI
-- Decision: Keep one primary action per upload state and progressively disclose supporting guidance.
-- Reason: The upload path should be clear within seconds without hiding recovery help.
-- Impact: Quota, examples, and tips stay lightweight; alternate demo modes do not compete with the core alphabet flow.
+- Decision: Use an open paper workspace where one framed upload surface transforms through selection, processing, recovery, and result states. Keep preparation guidance behind one disclosure and show a contextual mobile action bar only after selection.
+- Reason: Uploading should be obvious within seconds, while stable element positions and short status copy keep every later state easy to follow.
+- Impact: The HandWrite wordmark replaces separate back navigation; nested cards, step labels, repeated headings, and always-visible sample copy are removed.
 - Revisit: If the app adds multiple supported input workflows.
 
 ## 2026-06-27: Progressive Capture
