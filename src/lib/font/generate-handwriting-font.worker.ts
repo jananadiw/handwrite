@@ -28,12 +28,7 @@ workerScope.addEventListener(
 
     try {
       const generatedFont = await generateHandwritingFont({
-        analysis: request.analysis,
-        normalisedPhoto: {
-          blob: request.photo,
-          height: request.height,
-          width: request.width,
-        },
+        sources: request.sources,
       });
       const fontBuffer = await generatedFont.blob.arrayBuffer();
       const response: GenerateFontWorkerResponse = {

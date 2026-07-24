@@ -1,9 +1,18 @@
+import type { AlphabetAnalysis } from "@/lib/extraction/schemas";
+
 export type GeneratedHandwritingFont = {
   blob: Blob;
   fileName: string;
   familyName: string;
   generatedLetters: string[];
   missingLetters: string[];
+};
+
+export type HandwritingFontSource = {
+  analysis: AlphabetAnalysis;
+  photo: Blob;
+  width: number;
+  height: number;
 };
 
 export type Bounds = {

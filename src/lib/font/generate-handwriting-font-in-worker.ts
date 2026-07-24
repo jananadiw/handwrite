@@ -5,23 +5,23 @@ import type {
   GenerateFontWorkerRequest,
   GenerateFontWorkerResponse,
 } from "@/lib/font/generation-worker-protocol";
-import type { GeneratedHandwritingFont } from "@/lib/font/types";
-import type { AlphabetAnalysis } from "@/lib/extraction/schemas";
+import type {
+  GeneratedHandwritingFont,
+  HandwritingFontSource,
+} from "@/lib/font/types";
 import type { NormalisedJpeg } from "@/lib/images/normalise-to-jpeg";
 
 export async function generateHandwritingFontInWorker({
-  analysis,
-  normalisedPhoto,
+  sources,
 }: {
-  analysis: AlphabetAnalysis;
-  normalisedPhoto: NormalisedJpeg;
+  sources: HandwritingFontSource[];
 }): Promise<GeneratedHandwritingFont> {
   if (typeof Worker === "undefined") {
     const { generateHandwritingFont } = await import(
       "@/lib/font/generate-handwriting-font"
     );
 
-    return generateHandwritingFont({ analysis, normalisedPhoto });
+    return generateHandwritingFont({ sources });
   }
 
   const id = createRequestId();
@@ -36,10 +36,7 @@ export async function generateHandwritingFontInWorker({
     worker.postMessage({
       type: "generate-font",
       id,
-      analysis,
-      photo: normalisedPhoto.blob,
-      height: normalisedPhoto.height,
-      width: normalisedPhoto.width,
+      sources,
     } satisfies GenerateFontWorkerRequest);
 
     function handleMessage(event: MessageEvent<GenerateFontWorkerResponse>) {
@@ -76,6 +73,21 @@ export async function generateHandwritingFontInWorker({
       worker.terminate();
     }
   });
+}
+
+export function createHandwritingFontSource({
+  analysis,
+  normalisedPhoto,
+}: {
+  analysis: HandwritingFontSource["analysis"];
+  normalisedPhoto: NormalisedJpeg;
+}): HandwritingFontSource {
+  return {
+    analysis,
+    photo: normalisedPhoto.blob,
+    height: normalisedPhoto.height,
+    width: normalisedPhoto.width,
+  };
 }
 
 function createRequestId() {

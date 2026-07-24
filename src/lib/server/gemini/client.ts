@@ -27,7 +27,8 @@ Detect both uppercase A-Z and lowercase a-z when present.
 Return JSON only. Boxes use [ymin,xmin,ymax,xmax], normalized 0..1000.
 Use compact letter keys: c=letter, b=box, q=confidence percent, i=issues.
 Omit i and globalIssues when empty. Mark usable false for blur, darkness,
-severe angle, many missing uppercase letters, touching letters, or unmappable layout.
+severe angle, touching letters, or unmappable layout. A photo can be usable
+even when it only contains a few letters.
 orientationDegrees is the clockwise rotation needed to make letters upright.
 When uppercase and lowercase are written as pairs, return separate boxes for
 each glyph, e.g. A and a are separate detections.

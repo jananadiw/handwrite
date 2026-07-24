@@ -9,7 +9,6 @@ import { PhotoDropZone } from "./photo-drop-zone";
 import { PhotoGuidelines } from "./photo-guidelines";
 import { ReplaceFontDialog } from "./replace-font-dialog";
 import { UploadActions } from "./upload-actions";
-import { UploadLimitNotice } from "./upload-limit-notice";
 import { UploadState } from "./upload-state";
 import { UploadStepIndicator } from "./upload-step-indicator";
 import {
@@ -18,8 +17,14 @@ import {
   shouldShowUploadSteps,
 } from "./upload-helpers";
 import type { UploadStatus } from "./upload-types";
-import { generateHandwritingFontInWorker } from "@/lib/font/generate-handwriting-font-in-worker";
-import type { GeneratedHandwritingFont } from "@/lib/font/types";
+import {
+  createHandwritingFontSource,
+  generateHandwritingFontInWorker,
+} from "@/lib/font/generate-handwriting-font-in-worker";
+import type {
+  GeneratedHandwritingFont,
+  HandwritingFontSource,
+} from "@/lib/font/types";
 import {
   MAX_SOURCE_IMAGE_BYTES,
   type NormalisedJpeg,
@@ -27,15 +32,19 @@ import {
 } from "@/lib/images/normalise-to-jpeg";
 import type { AlphabetAnalysis } from "@/lib/extraction/schemas";
 
+type CaptureMode = "initial" | "supplemental";
+
 export function UploadPhotoForm() {
   const inputId = useId();
   const guidelinesId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const captureModeRef = useRef<CaptureMode>("initial");
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [normalisedPhoto, setNormalisedPhoto] =
     useState<NormalisedJpeg | null>(null);
   const [analysis, setAnalysis] = useState<AlphabetAnalysis | null>(null);
+  const [fontSources, setFontSources] = useState<HandwritingFontSource[]>([]);
   const [generatedFont, setGeneratedFont] =
     useState<GeneratedHandwritingFont | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +60,7 @@ export function UploadPhotoForm() {
   const headerCopy = getUploadHeaderCopy(status, Boolean(sourceFile));
   const showSteps = shouldShowUploadSteps(status, Boolean(sourceFile));
   const processing = isUploadProcessing(status);
+  const hasMissingGlyphs = Boolean(generatedFont?.missingLetters.length);
 
   useEffect(() => {
     if (!normalisedPhotoUrl) {
@@ -69,21 +79,27 @@ export function UploadPhotoForm() {
   }, [generatedFontUrl]);
 
   async function preparePhoto(file: File) {
+    const captureMode = captureModeRef.current;
+
     setStatus("normalising");
     setSourceFile(file);
     setNormalisedPhoto(null);
     setAnalysis(null);
-    setGeneratedFont(null);
     setError(null);
 
+    if (captureMode === "initial") {
+      setGeneratedFont(null);
+      setFontSources([]);
+    }
+
     if (!isPhotoFile(file)) {
-      setStatus("error");
+      setStatus(captureMode === "supplemental" ? "generated" : "error");
       setError("Choose a photo file from your phone.");
       return;
     }
 
     if (file.size > MAX_SOURCE_IMAGE_BYTES) {
-      setStatus("error");
+      setStatus(captureMode === "supplemental" ? "generated" : "error");
       setError("That photo is too large. Try another photo from your phone.");
       return;
     }
@@ -93,7 +109,7 @@ export function UploadPhotoForm() {
       setNormalisedPhoto(normalised);
       setStatus("ready");
     } catch {
-      setStatus("error");
+      setStatus(captureMode === "supplemental" ? "generated" : "error");
       setError("We could not read that photo. Try another phone photo.");
     }
   }
@@ -114,10 +130,12 @@ export function UploadPhotoForm() {
   }
 
   function resetUpload() {
+    captureModeRef.current = "initial";
     setStatus("idle");
     setSourceFile(null);
     setNormalisedPhoto(null);
     setAnalysis(null);
+    setFontSources([]);
     setGeneratedFont(null);
     setError(null);
     setShowReplaceFontDialog(false);
@@ -142,15 +160,28 @@ export function UploadPhotoForm() {
     window.setTimeout(() => inputRef.current?.click(), 0);
   }
 
+  function handleAddMissingLetters() {
+    captureModeRef.current = "supplemental";
+    setError(null);
+    window.setTimeout(() => inputRef.current?.click(), 0);
+  }
+
   async function handleContinue() {
     if (!normalisedPhoto) {
+      captureModeRef.current = "initial";
       inputRef.current?.click();
       return;
     }
 
+    const captureMode = captureModeRef.current;
+    const supplemental = captureMode === "supplemental" && fontSources.length > 0;
+
     setStatus("analyzing");
     setAnalysis(null);
-    setGeneratedFont(null);
+    if (!supplemental) {
+      setGeneratedFont(null);
+      setFontSources([]);
+    }
     setError(null);
     let reachedGeneration = false;
 
@@ -158,7 +189,7 @@ export function UploadPhotoForm() {
       const photoAnalysis = await analyzePhoto(normalisedPhoto.file);
 
       if (!photoAnalysis.usable) {
-        setStatus("ready");
+        setStatus(supplemental ? "generated" : "ready");
         setError(
           photoAnalysis.rejectReason ||
             "That photo is not clear enough to generate a font.",
@@ -166,19 +197,30 @@ export function UploadPhotoForm() {
         return;
       }
 
+      const nextSource = createHandwritingFontSource({
+        analysis: photoAnalysis,
+        normalisedPhoto,
+      });
+      const nextFontSources = supplemental
+        ? [...fontSources, nextSource]
+        : [nextSource];
+
       setAnalysis(photoAnalysis);
       setStatus("generating");
       reachedGeneration = true;
 
       const font = await generateHandwritingFontInWorker({
-        analysis: photoAnalysis,
-        normalisedPhoto,
+        sources: nextFontSources,
       });
 
+      captureModeRef.current = "initial";
+      setFontSources(nextFontSources);
       setGeneratedFont(font);
       setStatus("generated");
     } catch (caughtError) {
-      setStatus(reachedGeneration ? "analyzed" : "ready");
+      setStatus(
+        supplemental ? "generated" : reachedGeneration ? "analyzed" : "ready",
+      );
       setError(
         caughtError instanceof Error
           ? caughtError.message
@@ -230,7 +272,6 @@ export function UploadPhotoForm() {
               />
               <PhotoGuidelines id={guidelinesId} />
               <div className="mt-4 border-t border-ink/8 pt-4">
-                <UploadLimitNotice />
                 <AlphabetSample />
               </div>
             </>
@@ -260,7 +301,6 @@ export function UploadPhotoForm() {
 
           {status === "generated" && generatedFont && generatedFontUrl ? (
             <FontReview
-              analysis={analysis}
               generatedFont={generatedFont}
               fontUrl={generatedFontUrl}
             />
@@ -284,7 +324,14 @@ export function UploadPhotoForm() {
             normalisedPhoto={normalisedPhoto}
             onPrimaryAction={() => void handleContinue()}
             onSecondaryAction={
-              status === "generated" ? handleUploadAnotherPhoto : undefined
+              status === "generated"
+                ? hasMissingGlyphs
+                  ? handleAddMissingLetters
+                  : handleUploadAnotherPhoto
+                : undefined
+            }
+            secondaryActionLabel={
+              hasMissingGlyphs ? "Add missing letters" : "Upload another photo"
             }
             status={status}
           />

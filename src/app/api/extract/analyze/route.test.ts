@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 import { MAX_ANALYSIS_IMAGE_BYTES } from "@/lib/extraction/constants";
-import { resetLocalAnalysisUploadQuota } from "@/lib/server/analysis-upload-rate-limit";
 
 mock.module("@/lib/server/gemini/client", () => ({
   analyzeAlphabetPhoto: async () => {
@@ -23,8 +22,6 @@ const geminiApiKeyEnvName = "GEMINI_API" + "_KEY";
 const originalGeminiApiKey = process.env[geminiApiKeyEnvName];
 
 afterEach(() => {
-  resetLocalAnalysisUploadQuota();
-
   if (originalGeminiApiKey === undefined) {
     delete process.env[geminiApiKeyEnvName];
     return;
@@ -104,7 +101,7 @@ describe("POST /api/extract/analyze", () => {
     await expectError(response, 500, "missing_api_key");
   });
 
-  test("rejects the fourth valid photo from the same IP before analysis", async () => {
+  test("allows repeated valid photos while upload limits are disabled", async () => {
     process.env[geminiApiKeyEnvName] = "test-api-key";
 
     const firstResponse = await POST(validPhotoRequest());
@@ -115,7 +112,7 @@ describe("POST /api/extract/analyze", () => {
     expect(firstResponse.status).toBe(200);
     expect(secondResponse.status).toBe(200);
     expect(thirdResponse.status).toBe(200);
-    await expectError(fourthResponse, 429, "rate_limit_exceeded");
+    expect(fourthResponse.status).toBe(200);
   });
 });
 

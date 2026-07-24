@@ -2,15 +2,12 @@ import {
   MAX_ANALYSIS_IMAGE_BYTES,
   SUPPORTED_IMAGE_MIME_TYPES,
 } from "@/lib/extraction/constants";
-import { consumeAnalysisUploadQuota } from "@/lib/server/analysis-upload-rate-limit";
 import { analyzeAlphabetPhoto } from "@/lib/server/gemini/client";
 
 type ErrorCode =
   | "missing_photo"
   | "unsupported_type"
   | "image_too_large"
-  | "rate_limit_exceeded"
-  | "rate_limit_unavailable"
   | "missing_api_key"
   | "analysis_failed";
 
@@ -68,24 +65,6 @@ export async function POST(request: Request) {
       code: "image_too_large",
       message: "That photo is too large. Try a smaller image.",
       status: 413,
-    });
-  }
-
-  try {
-    const quota = await consumeAnalysisUploadQuota(request);
-
-    if (!quota.allowed) {
-      return errorResponse({
-        code: "rate_limit_exceeded",
-        message: "This network has already uploaded three photos.",
-        status: 429,
-      });
-    }
-  } catch {
-    return errorResponse({
-      code: "rate_limit_unavailable",
-      message: "Upload rate limiting is not configured for this app.",
-      status: 500,
     });
   }
 

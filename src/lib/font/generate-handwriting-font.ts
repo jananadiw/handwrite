@@ -4,6 +4,7 @@ import {
   SUPPORTED_GLYPHS,
   SUPPORTED_LETTERS,
 } from "@/lib/extraction/constants";
+import type { LetterDetection } from "@/lib/extraction/schemas";
 import {
   FONT_FAMILY_NAME,
   FONT_FILE_NAME,
@@ -14,30 +15,31 @@ import {
   createLowercaseGlyph,
   traceGlyph,
 } from "@/lib/font/helpers/build-glyphs";
-import {
-  getBestDetections,
-  getMissingLetters,
-} from "@/lib/font/helpers/glyph-detections";
-import type { GeneratedHandwritingFont } from "@/lib/font/types";
-import type { AlphabetAnalysis } from "@/lib/extraction/schemas";
-import type { NormalisedJpeg } from "@/lib/images/normalise-to-jpeg";
+import { getMissingLetters } from "@/lib/font/helpers/glyph-detections";
+import type {
+  GeneratedHandwritingFont,
+  HandwritingFontSource,
+} from "@/lib/font/types";
 
 export type { GeneratedHandwritingFont } from "@/lib/font/types";
 
 export async function generateHandwritingFont({
-  analysis,
-  normalisedPhoto,
+  sources,
 }: {
-  analysis: AlphabetAnalysis;
-  normalisedPhoto: Pick<NormalisedJpeg, "blob" | "height" | "width">;
+  sources: HandwritingFontSource[];
 }): Promise<GeneratedHandwritingFont> {
-  const imageBitmap = await createImageBitmap(normalisedPhoto.blob);
+  const fontSources = await Promise.all(
+    sources.map(async (source) => ({
+      analysis: source.analysis,
+      imageBitmap: await createImageBitmap(source.photo),
+      imageHeight: source.height,
+      imageWidth: source.width,
+    })),
+  );
 
   try {
     const { generatedLetters, glyphs } = buildGlyphs({
-      analysis,
-      imageBitmap,
-      normalisedPhoto,
+      sources: fontSources,
     });
 
     if (generatedLetters.length === 0) {
@@ -61,18 +63,16 @@ export async function generateHandwritingFont({
       missingLetters: getMissingLetters(generatedLetters),
     };
   } finally {
-    imageBitmap.close();
+    for (const source of fontSources) {
+      source.imageBitmap.close();
+    }
   }
 }
 
 function buildGlyphs({
-  analysis,
-  imageBitmap,
-  normalisedPhoto,
+  sources,
 }: {
-  analysis: AlphabetAnalysis;
-  imageBitmap: ImageBitmap;
-  normalisedPhoto: Pick<NormalisedJpeg, "height" | "width">;
+  sources: TracingSource[];
 }) {
   const glyphs: opentype.Glyph[] = [
     createEmptyGlyph({ name: ".notdef" }),
@@ -83,28 +83,26 @@ function buildGlyphs({
     }),
   ];
   const generatedLetters: string[] = [];
-  const detections = getBestDetections(analysis);
 
   for (const letter of SUPPORTED_GLYPHS) {
-    const detection = detections.get(letter);
+    const candidates = getDetectionCandidates({ letter, sources });
 
-    if (!detection) {
-      continue;
+    for (const candidate of candidates) {
+      const glyph = traceGlyph({
+        detection: candidate.detection,
+        imageBitmap: candidate.source.imageBitmap,
+        imageHeight: candidate.source.imageHeight,
+        imageWidth: candidate.source.imageWidth,
+      });
+
+      if (!glyph) {
+        continue;
+      }
+
+      glyphs.push(glyph);
+      generatedLetters.push(letter);
+      break;
     }
-
-    const glyph = traceGlyph({
-      detection,
-      imageBitmap,
-      imageHeight: normalisedPhoto.height,
-      imageWidth: normalisedPhoto.width,
-    });
-
-    if (!glyph) {
-      continue;
-    }
-
-    glyphs.push(glyph);
-    generatedLetters.push(letter);
   }
 
   for (const uppercaseLetter of SUPPORTED_LETTERS) {
@@ -136,4 +134,34 @@ function buildGlyphs({
   }
 
   return { generatedLetters, glyphs };
+}
+
+type TracingSource = {
+  analysis: HandwritingFontSource["analysis"];
+  imageBitmap: ImageBitmap;
+  imageHeight: number;
+  imageWidth: number;
+};
+
+type DetectionCandidate = {
+  detection: LetterDetection;
+  source: TracingSource;
+};
+
+function getDetectionCandidates({
+  letter,
+  sources,
+}: {
+  letter: string;
+  sources: TracingSource[];
+}): DetectionCandidate[] {
+  return sources
+    .flatMap((source) =>
+      source.analysis.letters
+        .filter((detection) => detection.char === letter)
+        .map((detection) => ({ detection, source })),
+    )
+    .sort(
+      (left, right) => right.detection.confidence - left.detection.confidence,
+    );
 }

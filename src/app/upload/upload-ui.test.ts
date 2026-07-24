@@ -1,14 +1,17 @@
 import { describe, expect, mock, test } from "bun:test";
 import React, { type ImgHTMLAttributes } from "react";
 import { execSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AlphabetSample } from "./alphabet-sample";
 import { AnalysisSummary, getAnalysisSummaryLines } from "./analysis-summary";
 import { FontReview } from "./font-review";
 import { PhotoDropZone } from "./photo-drop-zone";
-import { PhotoGuidelines } from "./photo-guidelines";
+import {
+  PhotoGuidelines,
+  RECOMMENDED_HANDWRITING_SAMPLE,
+} from "./photo-guidelines";
 import { ReplaceFontDialog } from "./replace-font-dialog";
 import { UploadActions } from "./upload-actions";
 import { UploadPhotoForm } from "./upload-photo-form";
@@ -49,8 +52,6 @@ mock.module("next/link", () => ({
 }));
 
 const uploadDir = join(import.meta.dir);
-const scratchDir =
-  "/var/folders/_d/s9dphm0n2jn4vktp2xvt_rn40000gn/T/grok-goal-4fb5ebeeb322/implementer";
 const readUploadSource = (fileName: string) =>
   readFileSync(join(uploadDir, fileName), "utf8");
 
@@ -86,6 +87,12 @@ const SAMPLE_GENERATED_FONT = {
   fileName: "handwrite.ttf",
   generatedLetters: ["A"],
   missingLetters: [],
+};
+
+const SAMPLE_PARTIAL_FONT = {
+  ...SAMPLE_GENERATED_FONT,
+  generatedLetters: ["A", "a"],
+  missingLetters: ["B", "b"],
 };
 
 const HANDLER_HEADERS = [
@@ -177,6 +184,8 @@ describe("upload UI DOM output", () => {
     );
 
     expect(html).toContain('id="upload-guidelines"');
+    expect(html).toContain("For best results, write:");
+    expect(html).toContain(RECOMMENDED_HANDWRITING_SAMPLE);
     expect(html).toContain("Dark pen");
     expect(html).toContain("Plain paper");
     expect(html).toContain("Space letters");
@@ -236,15 +245,20 @@ describe("upload UI DOM output", () => {
   test("renders idle upload form with upload first, checklist second, example last", () => {
     const html = renderToStaticMarkup(React.createElement(UploadPhotoForm));
     const dropZoneIndex = indexOfOrThrow(html, "Choose a photo");
+    const recommendedIndex = indexOfOrThrow(
+      html,
+      RECOMMENDED_HANDWRITING_SAMPLE,
+    );
     const guidelinesIndex = indexOfOrThrow(html, "Dark pen");
     const exampleIndex = indexOfOrThrow(html, "See a good example");
 
-    expect(dropZoneIndex).toBeLessThan(guidelinesIndex);
+    expect(dropZoneIndex).toBeLessThan(recommendedIndex);
+    expect(recommendedIndex).toBeLessThan(guidelinesIndex);
     expect(guidelinesIndex).toBeLessThan(exampleIndex);
     expect(html.match(/Choose a photo/g)).toHaveLength(1);
     expect(html).toContain('src="/alphabet-preview.jpg"');
-    expect(html).toContain("Add your alphabet");
-    expect(html).toContain("3 analyses included.");
+    expect(html).toContain("Upload a clear handwriting photo");
+    expect(html).not.toContain("3 analyses included.");
     expect(html).not.toContain("July 4");
     expect(html).not.toContain("Source");
     expect(html).not.toContain("Tip:");
@@ -269,19 +283,35 @@ describe("upload UI DOM output", () => {
     expect(html).not.toContain('href="/"');
   });
 
-  test("renders missing glyphs for an incomplete generated font", () => {
+  test("renders add-missing action when generated font is incomplete", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(UploadActions, {
+        generatedFont: SAMPLE_PARTIAL_FONT,
+        generatedFontUrl: "/font.ttf",
+        normalisedPhoto: { file: new File([], "alphabet.jpg") } as never,
+        onPrimaryAction: () => undefined,
+        onSecondaryAction: () => undefined,
+        secondaryActionLabel: "Add missing letters",
+        status: "generated",
+      }),
+    );
+
+    expect(html).toContain("Add missing letters");
+    expect(html).toContain("Download .ttf");
+    expect(html).toContain('href="/font.ttf"');
+  });
+
+  test("renders generated font coverage and missing glyph prompt", () => {
     const html = renderToStaticMarkup(
       React.createElement(FontReview, {
-        analysis: SAMPLE_ANALYSIS,
-        generatedFont: {
-          ...SAMPLE_GENERATED_FONT,
-          missingLetters: ["A", "B"],
-        },
+        generatedFont: SAMPLE_PARTIAL_FONT,
         fontUrl: "/font.ttf",
       }),
     );
 
-    expect(html).toContain("Missing glyphs: A, B");
+    expect(html).toContain("2 of 52 glyphs generated");
+    expect(html).toContain("Missing glyphs: B, b");
+    expect(html).toContain("Write these glyphs clearly");
     expect(html).not.toContain("demo glyphs");
   });
 
@@ -340,21 +370,27 @@ describe("upload UI preservation", () => {
     expect(formSource).not.toContain("createOperationGuard");
   });
 
-  test("preserves preparePhoto and handle* handler bodies from baseline", () => {
+  test("preserves the existing photo handlers while adding progressive capture", () => {
     const currentSource = readUploadSource("upload-photo-form.tsx");
     const baselineSource = readBaselineFormSource();
-    const report: string[] = ["handler preservation check:"];
 
     for (const header of HANDLER_HEADERS) {
-      const currentBody = extractFunctionBody(currentSource, header);
-      const baselineBody = extractFunctionBody(baselineSource, header);
-
-      expect(currentBody).toBe(baselineBody);
-      report.push(`PASS ${header}`);
+      expect(extractFunctionBody(currentSource, header)).toBe(
+        extractFunctionBody(baselineSource, header),
+      );
     }
+  });
 
-    mkdirSync(scratchDir, { recursive: true });
-    writeFileSync(join(scratchDir, "handler-preservation.txt"), report.join("\n"));
+  test("wires progressive capture without replacing the first font on supplemental upload", () => {
+    const formSource = readUploadSource("upload-photo-form.tsx");
+
+    expect(formSource).toContain('type CaptureMode = "initial" | "supplemental"');
+    expect(formSource).toContain("const [fontSources, setFontSources]");
+    expect(formSource).toContain("function handleAddMissingLetters()");
+    expect(formSource).toContain("createHandwritingFontSource");
+    expect(formSource).toContain("sources: nextFontSources");
+    expect(formSource).toContain('captureMode === "initial"');
+    expect(formSource).toContain('captureMode === "supplemental"');
   });
 });
 
@@ -375,6 +411,9 @@ describe("upload presentation helpers", () => {
   });
 
   test("returns phase-aware header copy", () => {
+    expect(getUploadHeaderCopy("idle", false).title).toBe(
+      "Upload a clear handwriting photo",
+    );
     expect(getUploadHeaderCopy("ready", true).title).toBe("Photo added");
     expect(getUploadHeaderCopy("generated", true).title).toBe(
       "Your font is ready",
