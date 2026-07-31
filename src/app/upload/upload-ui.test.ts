@@ -250,6 +250,7 @@ describe("upload UI DOM output", () => {
   test("renders idle upload form with the action before disclosed guidance", () => {
     const html = renderToStaticMarkup(React.createElement(UploadPhotoForm));
     const dropZoneIndex = indexOfOrThrow(html, "Choose a handwriting photo");
+    const limitIndex = indexOfOrThrow(html, "3 photo analyses included.");
     const recommendedIndex = indexOfOrThrow(
       html,
       RECOMMENDED_HANDWRITING_SAMPLE,
@@ -257,7 +258,8 @@ describe("upload UI DOM output", () => {
     const guidelinesIndex = indexOfOrThrow(html, "Dark pen");
     const exampleIndex = indexOfOrThrow(html, "Example photo");
 
-    expect(dropZoneIndex).toBeLessThan(recommendedIndex);
+    expect(dropZoneIndex).toBeLessThan(limitIndex);
+    expect(limitIndex).toBeLessThan(recommendedIndex);
     expect(recommendedIndex).toBeLessThan(guidelinesIndex);
     expect(guidelinesIndex).toBeLessThan(exampleIndex);
     expect(html.match(/Choose a handwriting photo/g)).toHaveLength(1);
@@ -265,7 +267,7 @@ describe("upload UI DOM output", () => {
     expect(html).toContain("Add your handwriting");
     expect(html).toContain("Any clear handwriting photo works.");
     expect(html).toContain('aria-label="HandWrite home"');
-    expect(html).not.toContain("3 analyses included.");
+    expect(html).toContain("Invalid files do not count.");
     expect(html).not.toContain("July 4");
     expect(html).not.toContain("Source");
     expect(html).not.toContain("Tip:");
