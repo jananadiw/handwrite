@@ -8,6 +8,7 @@ import { PhotoDropZone } from "./photo-drop-zone";
 import { PhotoGuidelines } from "./photo-guidelines";
 import { ReplaceFontDialog } from "./replace-font-dialog";
 import { UploadActions } from "./upload-actions";
+import { UploadLimitNotice } from "./upload-limit-notice";
 import { UploadState } from "./upload-state";
 import { getUploadHeaderCopy, isUploadProcessing } from "./upload-helpers";
 import type { UploadStatus } from "./upload-types";
@@ -266,6 +267,7 @@ export function UploadPhotoForm() {
                 inputId={inputId}
                 onDrop={handleDrop}
               />
+              <UploadLimitNotice />
               <PhotoGuidelines id={guidelinesId} />
             </>
           ) : null}
