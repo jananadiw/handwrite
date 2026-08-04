@@ -3,7 +3,7 @@ import "server-only";
 import { createHash } from "crypto";
 import { Redis } from "@upstash/redis";
 
-export const MAX_ANALYSIS_UPLOADS_PER_IP = 3;
+const MAX_ANALYSIS_UPLOADS_PER_IP = 3;
 
 const localCounts = new Map<string, number>();
 

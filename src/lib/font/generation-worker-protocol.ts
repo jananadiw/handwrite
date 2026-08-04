@@ -13,7 +13,7 @@ export type GenerateFontWorkerResponse =
   | GenerateFontWorkerSuccessResponse
   | GenerateFontWorkerErrorResponse;
 
-export type GenerateFontWorkerSuccessResponse = Omit<
+type GenerateFontWorkerSuccessResponse = Omit<
   GeneratedHandwritingFont,
   "blob"
 > & {
@@ -22,7 +22,7 @@ export type GenerateFontWorkerSuccessResponse = Omit<
   fontBuffer: ArrayBuffer;
 };
 
-export type GenerateFontWorkerErrorResponse = {
+type GenerateFontWorkerErrorResponse = {
   type: "generation-error";
   id: string;
   message: string;
