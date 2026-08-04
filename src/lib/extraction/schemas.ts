@@ -4,38 +4,38 @@ import {
   SUPPORTED_GLYPHS,
 } from "@/lib/extraction/constants";
 
-export const letterCharSchema = z.enum(SUPPORTED_GLYPHS);
+const letterCharSchema = z.enum(SUPPORTED_GLYPHS);
 
-export const normalizedCoordinateSchema = z
+const normalizedCoordinateSchema = z
   .number()
   .min(0)
   .max(NORMALIZED_COORDINATE_MAX);
 
-export const normalizedBoxSchema = z
+const normalizedBoxSchema = z
   .array(normalizedCoordinateSchema)
   .length(4)
   .describe("[ymin, xmin, ymax, xmax] in Gemini normalized 0..1000 space.");
 
-export const pointSchema = z.object({
+const pointSchema = z.object({
   x: normalizedCoordinateSchema,
   y: normalizedCoordinateSchema,
 });
 
-export const pageCornersSchema = z.object({
+const pageCornersSchema = z.object({
   topLeft: pointSchema,
   topRight: pointSchema,
   bottomRight: pointSchema,
   bottomLeft: pointSchema,
 });
 
-export const letterDetectionSchema = z.object({
+const letterDetectionSchema = z.object({
   char: letterCharSchema,
   box: normalizedBoxSchema,
   confidence: z.number().min(0).max(1),
   issues: z.array(z.string()).default([]),
 });
 
-export const alphabetAnalysisSchema = z.object({
+const alphabetAnalysisSchema = z.object({
   source: z.literal("alphabet").default("alphabet"),
   usable: z.boolean(),
   rejectReason: z.string().optional(),
@@ -52,7 +52,7 @@ export const alphabetAnalysisSchema = z.object({
 
 // Compact Gemini-only schema to reduce output tokens.
 // c = character, b = bounding box, q = quality/confidence percentage, i = issues.
-export const compactLetterDetectionSchema = z.object({
+const compactLetterDetectionSchema = z.object({
   c: letterCharSchema,
   b: normalizedBoxSchema,
   q: z.number().min(0).max(100),
@@ -74,9 +74,7 @@ export const compactAlphabetAnalysisSchema = z.object({
   globalIssues: z.array(z.string()).optional(),
 });
 
-export type LetterChar = z.infer<typeof letterCharSchema>;
 export type NormalizedBox = z.infer<typeof normalizedBoxSchema>;
-export type PageCorners = z.infer<typeof pageCornersSchema>;
 export type LetterDetection = z.infer<typeof letterDetectionSchema>;
 export type AlphabetAnalysis = z.infer<typeof alphabetAnalysisSchema>;
 export type CompactAlphabetAnalysis = z.infer<

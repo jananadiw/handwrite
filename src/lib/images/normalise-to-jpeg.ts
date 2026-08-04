@@ -6,7 +6,7 @@ export type NormalisedJpeg = {
 };
 
 export const MAX_SOURCE_IMAGE_BYTES = 20 * 1024 * 1024;
-export const MAX_API_IMAGE_BYTES = 1 * 1024 * 1024;
+const MAX_API_IMAGE_BYTES = 1 * 1024 * 1024;
 
 const HEIC_FILE_PATTERN = /\.(heic|heif)$/i;
 const HEIC_MIME_TYPES = new Set(["image/heic", "image/heif"]);

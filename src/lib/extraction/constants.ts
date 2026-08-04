@@ -27,7 +27,7 @@ export const SUPPORTED_LETTERS = [
   "Z",
 ] as const;
 
-export const SUPPORTED_LOWERCASE_LETTERS = [
+const SUPPORTED_LOWERCASE_LETTERS = [
   "a",
   "b",
   "c",

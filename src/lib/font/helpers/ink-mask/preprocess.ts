@@ -43,7 +43,7 @@ export function preprocessInkMask({
   return resizeInkMaskToHeight(cropInkMask(mask, normalizedBounds), targetHeight);
 }
 
-export function getGlyphTargetMaskHeight(char: string) {
+function getGlyphTargetMaskHeight(char: string) {
   if (char >= "a" && char <= "z") {
     return Math.round(DEFAULT_FONT_METRICS.capHeight * LOWERCASE_SCALE);
   }

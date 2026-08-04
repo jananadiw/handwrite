@@ -1,6 +1,6 @@
 import "server-only";
 
-export function getGeminiApiKey() {
+function getGeminiApiKey() {
   return process.env.GEMINI_API_KEY;
 }
 
