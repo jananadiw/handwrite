@@ -7,6 +7,14 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { AlphabetSample } from "./alphabet-sample";
 import { AnalysisSummary, getAnalysisSummaryLines } from "./analysis-summary";
 import { FontReview } from "./font-review";
+import {
+  DEFAULT_PREVIEW_TEXT,
+  getPreviewDisplayText,
+  getPreviewFallbackNotice,
+  getUnsupportedPreviewCharacters,
+  normalisePreviewText,
+  PREVIEW_TEXT_MAX_LENGTH,
+} from "./font-preview-text";
 import { PhotoDropZone } from "./photo-drop-zone";
 import {
   PhotoGuidelines,
@@ -326,6 +334,50 @@ describe("upload UI DOM output", () => {
     expect(html).not.toContain("demo glyphs");
   });
 
+  test("renders an editable preview seeded with the default text", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(FontReview, {
+        generatedFont: SAMPLE_GENERATED_FONT,
+        fontUrl: "/font.ttf",
+      }),
+    );
+
+    expect(html).toContain("Type anything to see it in your handwriting.");
+    expect(html).toContain("Preview your own words");
+    expect(html).toContain("<label");
+    expect(html).toContain(`maxLength="${PREVIEW_TEXT_MAX_LENGTH}"`);
+    expect(html).toContain(`value="${DEFAULT_PREVIEW_TEXT}"`);
+    expect(html).not.toContain("THE QUICK BROWN FOX");
+  });
+
+  test("warns about typed characters the font cannot render", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(FontReview, {
+        generatedFont: SAMPLE_PARTIAL_FONT,
+        fontUrl: "/font.ttf",
+      }),
+    );
+
+    expect(html).toContain("Not in your font yet:");
+    expect(html).toContain("fall back to another typeface");
+    expect(html).toContain("aria-describedby");
+  });
+
+  test("omits the fallback notice when every character is available", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(FontReview, {
+        generatedFont: {
+          ...SAMPLE_GENERATED_FONT,
+          generatedLetters: [...DEFAULT_PREVIEW_TEXT],
+        },
+        fontUrl: "/font.ttf",
+      }),
+    );
+
+    expect(html).not.toContain("Not in your font yet:");
+    expect(html).not.toContain("aria-describedby");
+  });
+
   test("renders replace-font confirmation dialog with download option", () => {
     const html = renderToStaticMarkup(
       React.createElement(ReplaceFontDialog, {
@@ -432,5 +484,36 @@ describe("upload presentation helpers", () => {
 
     expect(lines.glyphLine).toContain("glyphs detected");
     expect(lines.issueLine).toContain("No major photo issues detected.");
+  });
+});
+
+describe("font preview text helpers", () => {
+  test("collapses whitespace and caps preview length", () => {
+    expect(normalisePreviewText("Jane   Doe")).toBe("Jane Doe");
+    expect(normalisePreviewText("Jane\nDoe")).toBe("Jane Doe");
+    expect(normalisePreviewText("x".repeat(80))).toHaveLength(
+      PREVIEW_TEXT_MAX_LENGTH,
+    );
+  });
+
+  test("falls back to the default text when input is blank", () => {
+    expect(getPreviewDisplayText("")).toBe(DEFAULT_PREVIEW_TEXT);
+    expect(getPreviewDisplayText("   ")).toBe(DEFAULT_PREVIEW_TEXT);
+    expect(getPreviewDisplayText("Jane")).toBe("Jane");
+  });
+
+  test("reports unique unrenderable characters and ignores spaces", () => {
+    expect(getUnsupportedPreviewCharacters("Ada Ada", ["A", "d"])).toEqual([
+      "a",
+    ]);
+    expect(getUnsupportedPreviewCharacters("A A", ["A"])).toEqual([]);
+    expect(getUnsupportedPreviewCharacters("A1!", ["A"])).toEqual(["1", "!"]);
+  });
+
+  test("builds a fallback notice only when characters are missing", () => {
+    expect(getPreviewFallbackNotice([])).toBeNull();
+    expect(getPreviewFallbackNotice(["1", "!"])).toContain(
+      "Not in your font yet: 1 !",
+    );
   });
 });

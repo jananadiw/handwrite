@@ -1,15 +1,16 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState } from "react";
 import { SUPPORTED_GLYPHS } from "@/lib/extraction/constants";
 import type { GeneratedHandwritingFont } from "@/lib/font/generate-handwriting-font";
-
-const REVIEW_SAMPLE_ROWS = [
-  "HANDWRITE",
-  "handwrite",
-  "THE QUICK BROWN FOX",
-  "abcdefghijklmnopqrstuvwxyz",
-];
+import {
+  DEFAULT_PREVIEW_TEXT,
+  getPreviewDisplayText,
+  getPreviewFallbackNotice,
+  getUnsupportedPreviewCharacters,
+  normalisePreviewText,
+  PREVIEW_TEXT_MAX_LENGTH,
+} from "./font-preview-text";
 
 export function FontReview({
   error,
@@ -21,8 +22,18 @@ export function FontReview({
   fontUrl: string;
 }) {
   const fontId = useId().replace(/\W/g, "");
+  const [previewText, setPreviewText] = useState(DEFAULT_PREVIEW_TEXT);
   const previewFamily = `handwrite-preview-${fontId}`;
+  const previewInputId = `handwrite-preview-input-${fontId}`;
+  const previewNoticeId = `handwrite-preview-notice-${fontId}`;
   const generatedGlyphLine = `${generatedFont.generatedLetters.length} of ${SUPPORTED_GLYPHS.length} glyphs generated`;
+  const displayText = getPreviewDisplayText(previewText);
+  const fallbackNotice = getPreviewFallbackNotice(
+    getUnsupportedPreviewCharacters(
+      displayText,
+      generatedFont.generatedLetters,
+    ),
+  );
 
   return (
     <section className="font-result-reveal mt-6 overflow-hidden border border-ink/12 bg-stone/80">
@@ -38,7 +49,7 @@ export function FontReview({
         <div>
           <p className="text-sm font-medium text-ink">Font preview</p>
           <p className="mt-1 text-sm leading-5 text-subtitle">
-            Your handwriting is ready to use.
+            Type anything to see it in your handwriting.
           </p>
         </div>
         <p className="shrink-0 text-sm font-medium text-muted">
@@ -47,16 +58,44 @@ export function FontReview({
       </div>
 
       <div className="overflow-hidden bg-white px-5 py-7 shadow-[inset_0_0_24px_rgba(43,38,34,0.04)] sm:px-7 sm:py-9">
-        <div
-          className="grid max-w-full gap-3 overflow-hidden text-[32px] leading-[1.12] tracking-normal text-ink sm:text-[46px]"
+        <p
+          aria-live="polite"
+          className="max-w-full overflow-hidden break-all text-[32px] leading-[1.12] tracking-normal text-ink sm:text-[46px]"
           style={{ fontFamily: `"${previewFamily}"` }}
         >
-          {REVIEW_SAMPLE_ROWS.map((sample) => (
-            <p className="max-w-full overflow-hidden break-all" key={sample}>
-              {sample}
-            </p>
-          ))}
-        </div>
+          {displayText}
+        </p>
+      </div>
+
+      <div className="border-t border-ink/8 px-4 py-4 sm:px-5">
+        <label
+          className="text-sm font-medium leading-5 text-ink"
+          htmlFor={previewInputId}
+        >
+          Preview your own words
+        </label>
+        <input
+          aria-describedby={fallbackNotice ? previewNoticeId : undefined}
+          autoComplete="off"
+          className="mt-2 h-12 w-full bg-linen/55 px-3 text-base text-ink ring-1 ring-inset ring-ink/10 transition-colors placeholder:text-muted hover:bg-linen focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button"
+          id={previewInputId}
+          maxLength={PREVIEW_TEXT_MAX_LENGTH}
+          onChange={(event) =>
+            setPreviewText(normalisePreviewText(event.target.value))
+          }
+          placeholder={DEFAULT_PREVIEW_TEXT}
+          type="text"
+          value={previewText}
+        />
+        {fallbackNotice ? (
+          <p
+            aria-live="polite"
+            className="mt-2 text-sm leading-5 text-muted"
+            id={previewNoticeId}
+          >
+            {fallbackNotice}
+          </p>
+        ) : null}
       </div>
 
       {error ? (
