@@ -34,6 +34,7 @@ export async function generateHandwritingFont({
       imageBitmap: await createImageBitmap(source.photo),
       imageHeight: source.height,
       imageWidth: source.width,
+      kind: source.kind ?? "photo",
     })),
   );
 
@@ -93,6 +94,7 @@ function buildGlyphs({
         imageBitmap: candidate.source.imageBitmap,
         imageHeight: candidate.source.imageHeight,
         imageWidth: candidate.source.imageWidth,
+        trustInk: candidate.source.kind === "drawn",
       });
 
       if (!glyph) {
@@ -141,6 +143,7 @@ type TracingSource = {
   imageBitmap: ImageBitmap;
   imageHeight: number;
   imageWidth: number;
+  kind: NonNullable<HandwritingFontSource["kind"]>;
 };
 
 type DetectionCandidate = {

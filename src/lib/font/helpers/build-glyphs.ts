@@ -12,6 +12,7 @@ import {
   MIN_GLYPH_INK_COVERAGE,
   MIN_GLYPH_INK_PIXELS,
 } from "@/lib/font/constants";
+import type { Bounds } from "@/lib/font/types";
 import {
   createFontCanvas,
   getFontCanvasContext,
@@ -30,11 +31,13 @@ export function traceGlyph({
   imageBitmap,
   imageHeight,
   imageWidth,
+  trustInk = false,
 }: {
   detection: LetterDetection;
   imageBitmap: ImageBitmap;
   imageHeight: number;
   imageWidth: number;
+  trustInk?: boolean;
 }) {
   const sourceCanvas = createSourceCanvas({
     detection,
@@ -55,17 +58,7 @@ export function traceGlyph({
     return null;
   }
 
-  const inkPixels = countInkPixels(sourceImageData, inkBounds);
-  const inkArea =
-    (inkBounds.maxX - inkBounds.minX + 1) *
-    (inkBounds.maxY - inkBounds.minY + 1);
-  const inkCoverage = inkPixels / Math.max(inkArea, 1);
-
-  if (
-    inkPixels < MIN_GLYPH_INK_PIXELS ||
-    inkCoverage < MIN_GLYPH_INK_COVERAGE ||
-    inkCoverage > MAX_GLYPH_INK_COVERAGE
-  ) {
+  if (!trustInk && !hasGlyphLikeInk({ bounds: inkBounds, imageData: sourceImageData })) {
     return null;
   }
 
@@ -144,6 +137,29 @@ export function createEmptyGlyph({
     path: new opentype.Path(),
     unicode,
   });
+}
+
+/**
+ * Photo crops can contain paper speckle or shadow blobs rather than a letter.
+ * Ink that is too sparse, too dense, or too small is rejected as noise.
+ */
+function hasGlyphLikeInk({
+  bounds,
+  imageData,
+}: {
+  bounds: Bounds;
+  imageData: ImageData;
+}) {
+  const inkPixels = countInkPixels(imageData, bounds);
+  const inkArea =
+    (bounds.maxX - bounds.minX + 1) * (bounds.maxY - bounds.minY + 1);
+  const inkCoverage = inkPixels / Math.max(inkArea, 1);
+
+  return (
+    inkPixels >= MIN_GLYPH_INK_PIXELS &&
+    inkCoverage >= MIN_GLYPH_INK_COVERAGE &&
+    inkCoverage <= MAX_GLYPH_INK_COVERAGE
+  );
 }
 
 function createSourceCanvas({

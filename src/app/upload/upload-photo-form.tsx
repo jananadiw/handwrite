@@ -243,6 +243,12 @@ export function UploadPhotoForm() {
           >
             HandWrite
           </Link>
+          <Link
+            className="min-h-11 text-sm font-medium text-subtitle underline decoration-ink/25 underline-offset-4 transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-2"
+            href="/draw"
+          >
+            No paper? Draw it
+          </Link>
         </header>
 
         <div
