@@ -6,23 +6,22 @@ import {
   type DrawnPoint,
   type DrawnStroke,
 } from "@/lib/font/drawn-glyphs";
+import {
+  getLetterZoneBand,
+  GUIDE_LABELS,
+  GUIDE_POSITIONS,
+  isZoneGuide,
+  type GuideName,
+} from "./letter-guides";
 
 const CANVAS_SIZE = 512;
+const LABEL_GUTTER = 34;
 
-/** Fractions of the square, tuned to the font's ascender/cap/x-height metrics. */
-const GUIDES = [
-  { emphasis: "light", y: 0.15 },
-  { emphasis: "medium", y: 0.22 },
-  { emphasis: "medium", y: 0.36 },
-  { emphasis: "strong", y: 0.71 },
-  { emphasis: "light", y: 0.85 },
-] as const;
-
-const GUIDE_COLORS = {
-  light: "#ece7de",
-  medium: "#ded7ca",
-  strong: "#c3b9a7",
-} as const;
+const ZONE_FILL = "#eef3eb";
+const ZONE_LINE = "#8ea67f";
+const IDLE_LINE = "#e2dcd2";
+const LABEL_ACTIVE = "#66795a";
+const LABEL_IDLE = "#b8b0a3";
 
 export function GlyphCanvas({
   char,
@@ -53,13 +52,36 @@ export function GlyphCanvas({
     context.fillStyle = "#ffffff";
     context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-    for (const guide of GUIDES) {
-      context.strokeStyle = GUIDE_COLORS[guide.emphasis];
-      context.lineWidth = guide.emphasis === "strong" ? 3 : 2;
+    const band = getLetterZoneBand(char);
+
+    context.fillStyle = ZONE_FILL;
+    context.fillRect(
+      0,
+      band.top * CANVAS_SIZE,
+      CANVAS_SIZE,
+      (band.bottom - band.top) * CANVAS_SIZE,
+    );
+
+    const guides = Object.entries(GUIDE_POSITIONS) as [GuideName, number][];
+
+    for (const [guide, position] of guides) {
+      const isActive = isZoneGuide(char, guide);
+      const y = position * CANVAS_SIZE;
+
+      context.strokeStyle = isActive ? ZONE_LINE : IDLE_LINE;
+      context.lineWidth = isActive ? 3 : 2;
+      context.setLineDash(isActive ? [] : [7, 9]);
       context.beginPath();
-      context.moveTo(0, guide.y * CANVAS_SIZE);
-      context.lineTo(CANVAS_SIZE, guide.y * CANVAS_SIZE);
+      context.moveTo(LABEL_GUTTER, y);
+      context.lineTo(CANVAS_SIZE, y);
       context.stroke();
+      context.setLineDash([]);
+
+      context.fillStyle = isActive ? LABEL_ACTIVE : LABEL_IDLE;
+      context.font = `${isActive ? 600 : 400} 17px ui-sans-serif, system-ui, sans-serif`;
+      context.textAlign = "left";
+      context.textBaseline = "middle";
+      context.fillText(GUIDE_LABELS[guide], 4, y);
     }
 
     context.fillStyle = "#111111";
@@ -74,7 +96,7 @@ export function GlyphCanvas({
         stroke,
       });
     }
-  }, [getContext, strokes]);
+  }, [char, getContext, strokes]);
 
   useEffect(() => {
     redraw();

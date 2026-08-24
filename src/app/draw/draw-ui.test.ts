@@ -24,6 +24,12 @@ const {
   getDrawProgressLine,
   getNextUndrawnChar,
 } = await import("./draw-helpers");
+const {
+  getLetterZone,
+  getLetterZoneBand,
+  getLetterZoneCopy,
+  isZoneGuide,
+} = await import("./letter-guides");
 
 const SAMPLE_STROKE = [
   { pressure: 0.5, x: 0.2, y: 0.2 },
@@ -79,6 +85,13 @@ describe("draw UI DOM output", () => {
     expect(html).toContain("Clear");
     expect(html).toContain("Next letter");
   });
+
+  test("names the guides that bound the active letter", () => {
+    const html = renderToStaticMarkup(React.createElement(DrawGlyphsForm));
+
+    expect(html).toContain("Sit A between the cap line and the baseline.");
+    expect(html).toContain("The shaded band is your writing zone");
+  });
 });
 
 describe("draw workflow helpers", () => {
@@ -122,5 +135,55 @@ describe("draw workflow helpers", () => {
   test("switches header copy once a font exists", () => {
     expect(getDrawHeaderCopy("drawing").title).toBe("Write your letters");
     expect(getDrawHeaderCopy("generated").title).toBe("Your font, made by you");
+  });
+});
+
+describe("letter writing zones", () => {
+  test("uppercase spans the cap line to the baseline", () => {
+    expect(getLetterZone("A")).toEqual({ bottom: "baseline", top: "capHeight" });
+    expect(getLetterZoneCopy("A")).toBe(
+      "Sit A between the cap line and the baseline.",
+    );
+  });
+
+  test("plain lowercase spans the x-height to the baseline", () => {
+    expect(getLetterZone("a")).toEqual({ bottom: "baseline", top: "xHeight" });
+    expect(getLetterZone("o")).toEqual({ bottom: "baseline", top: "xHeight" });
+  });
+
+  test("lowercase ascenders start at the ascender line", () => {
+    for (const char of ["b", "d", "h", "k", "l", "t"]) {
+      expect(getLetterZone(char).top).toBe("ascender");
+      expect(getLetterZone(char).bottom).toBe("baseline");
+    }
+  });
+
+  test("lowercase descenders end at the descender line", () => {
+    for (const char of ["g", "j", "p", "q", "y"]) {
+      expect(getLetterZone(char).bottom).toBe("descender");
+    }
+  });
+
+  test("letters that both rise and fall span the full range", () => {
+    expect(getLetterZone("f")).toEqual({
+      bottom: "descender",
+      top: "ascender",
+    });
+  });
+
+  test("marks only the bounding guides of the active letter", () => {
+    expect(isZoneGuide("A", "capHeight")).toBe(true);
+    expect(isZoneGuide("A", "baseline")).toBe(true);
+    expect(isZoneGuide("A", "xHeight")).toBe(false);
+    expect(isZoneGuide("a", "capHeight")).toBe(false);
+    expect(isZoneGuide("a", "xHeight")).toBe(true);
+  });
+
+  test("keeps the zone band ordered top above bottom", () => {
+    for (const char of ["A", "a", "b", "g", "f"]) {
+      const band = getLetterZoneBand(char);
+
+      expect(band.top).toBeLessThan(band.bottom);
+    }
   });
 });

@@ -14,6 +14,7 @@ import {
 } from "./draw-helpers";
 import { GlyphCanvas } from "./glyph-canvas";
 import { GlyphPicker } from "./glyph-picker";
+import { getLetterZoneCopy } from "./letter-guides";
 
 import {
   createDrawnFontSource,
@@ -162,6 +163,14 @@ export function DrawGlyphsForm() {
                   strokes={activeStrokes}
                 />
               </div>
+
+              <p aria-live="polite" className="mt-3 text-sm leading-6 text-ink">
+                {getLetterZoneCopy(activeChar)}{" "}
+                <span className="text-subtitle">
+                  The shaded band is your writing zone; dashed lines are for
+                  reference.
+                </span>
+              </p>
 
               <div className="mt-3 grid grid-cols-3 gap-3">
                 <button
