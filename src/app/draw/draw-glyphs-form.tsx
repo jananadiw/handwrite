@@ -167,8 +167,8 @@ export function DrawGlyphsForm() {
               <p aria-live="polite" className="mt-3 text-sm leading-6 text-ink">
                 {getLetterZoneCopy(activeChar)}{" "}
                 <span className="text-subtitle">
-                  The shaded band is your writing zone; dashed lines are for
-                  reference.
+                  The faded letter shows the size and position to aim for. Write
+                  it your own way — it disappears once you start.
                 </span>
               </p>
 

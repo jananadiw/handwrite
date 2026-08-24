@@ -70,3 +70,30 @@ export function isZoneGuide(char: string, guide: GuideName) {
 
   return guide === zone.top || guide === zone.bottom;
 }
+
+/**
+ * Scales and positions the faded example letter so its ink fills the letter's
+ * writing zone exactly, using measured font metrics rather than assumed ones.
+ */
+export function getGhostLetterLayout({
+  band,
+  canvasSize,
+  measuredAscent,
+  measuredDescent,
+  trialFontSize,
+}: {
+  band: { bottom: number; top: number };
+  canvasSize: number;
+  measuredAscent: number;
+  measuredDescent: number;
+  trialFontSize: number;
+}) {
+  const measuredHeight = Math.max(measuredAscent + measuredDescent, 1);
+  const targetHeight = (band.bottom - band.top) * canvasSize;
+  const scale = targetHeight / measuredHeight;
+
+  return {
+    baselineY: band.top * canvasSize + measuredAscent * scale,
+    fontSize: trialFontSize * scale,
+  };
+}

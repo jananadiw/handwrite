@@ -25,6 +25,7 @@ const {
   getNextUndrawnChar,
 } = await import("./draw-helpers");
 const {
+  getGhostLetterLayout,
   getLetterZone,
   getLetterZoneBand,
   getLetterZoneCopy,
@@ -90,7 +91,7 @@ describe("draw UI DOM output", () => {
     const html = renderToStaticMarkup(React.createElement(DrawGlyphsForm));
 
     expect(html).toContain("Sit A between the cap line and the baseline.");
-    expect(html).toContain("The shaded band is your writing zone");
+    expect(html).toContain("The faded letter shows the size and position");
   });
 });
 
@@ -185,5 +186,66 @@ describe("letter writing zones", () => {
 
       expect(band.top).toBeLessThan(band.bottom);
     }
+  });
+});
+
+describe("faded example letter placement", () => {
+  test("fits the ghost ink exactly inside the writing zone", () => {
+    const band = getLetterZoneBand("A");
+    const canvasSize = 512;
+    const layout = getGhostLetterLayout({
+      band,
+      canvasSize,
+      measuredAscent: 70,
+      measuredDescent: 0,
+      trialFontSize: 100,
+    });
+    const scale = layout.fontSize / 100;
+    const inkTop = layout.baselineY - 70 * scale;
+    const inkBottom = layout.baselineY + 0 * scale;
+
+    expect(inkTop).toBeCloseTo(band.top * canvasSize, 5);
+    expect(inkBottom).toBeCloseTo(band.bottom * canvasSize, 5);
+  });
+
+  test("accounts for descenders below the baseline", () => {
+    const band = getLetterZoneBand("g");
+    const canvasSize = 512;
+    const layout = getGhostLetterLayout({
+      band,
+      canvasSize,
+      measuredAscent: 50,
+      measuredDescent: 20,
+      trialFontSize: 100,
+    });
+    const scale = layout.fontSize / 100;
+
+    expect(layout.baselineY - 50 * scale).toBeCloseTo(
+      band.top * canvasSize,
+      5,
+    );
+    expect(layout.baselineY + 20 * scale).toBeCloseTo(
+      band.bottom * canvasSize,
+      5,
+    );
+  });
+
+  test("scales the font up for taller zones", () => {
+    const shortZone = getGhostLetterLayout({
+      band: getLetterZoneBand("a"),
+      canvasSize: 512,
+      measuredAscent: 70,
+      measuredDescent: 0,
+      trialFontSize: 100,
+    });
+    const tallZone = getGhostLetterLayout({
+      band: getLetterZoneBand("b"),
+      canvasSize: 512,
+      measuredAscent: 70,
+      measuredDescent: 0,
+      trialFontSize: 100,
+    });
+
+    expect(tallZone.fontSize).toBeGreaterThan(shortZone.fontSize);
   });
 });

@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   paintDrawnStroke,
   type DrawnPoint,
   type DrawnStroke,
 } from "@/lib/font/drawn-glyphs";
 import {
+  getGhostLetterLayout,
   getLetterZoneBand,
   GUIDE_LABELS,
   GUIDE_POSITIONS,
@@ -23,6 +24,10 @@ const IDLE_LINE = "#e2dcd2";
 const LABEL_ACTIVE = "#66795a";
 const LABEL_IDLE = "#b8b0a3";
 
+const GHOST_TRIAL_FONT_SIZE = 100;
+const GHOST_COLOR = "rgba(43, 38, 34, 0.13)";
+const GHOST_FONT_STACK = '"New HandWrite", "Bradley Hand", cursive';
+
 export function GlyphCanvas({
   char,
   onCommitStroke,
@@ -34,6 +39,9 @@ export function GlyphCanvas({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const activeStrokeRef = useRef<DrawnStroke | null>(null);
+  const [fontReady, setFontReady] = useState(
+    () => typeof document === "undefined" || !("fonts" in document),
+  );
 
   const getContext = useCallback(() => {
     const canvas = canvasRef.current;
@@ -84,6 +92,10 @@ export function GlyphCanvas({
       context.fillText(GUIDE_LABELS[guide], 4, y);
     }
 
+    if (strokes.length === 0 && fontReady) {
+      paintGhostLetter({ band, char, context });
+    }
+
     context.fillStyle = "#111111";
     context.strokeStyle = "#111111";
     context.lineCap = "round";
@@ -96,11 +108,32 @@ export function GlyphCanvas({
         stroke,
       });
     }
-  }, [char, getContext, strokes]);
+  }, [char, fontReady, getContext, strokes]);
 
   useEffect(() => {
     redraw();
   }, [redraw]);
+
+  useEffect(() => {
+    if (typeof document === "undefined" || !document.fonts) {
+      return;
+    }
+
+    let cancelled = false;
+
+    document.fonts
+      .load(`${GHOST_TRIAL_FONT_SIZE}px "New HandWrite"`)
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) {
+          setFontReady(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function getPoint(event: React.PointerEvent<HTMLCanvasElement>): DrawnPoint {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -166,6 +199,44 @@ export function GlyphCanvas({
       role="img"
       width={CANVAS_SIZE}
     />
+  );
+}
+
+function paintGhostLetter({
+  band,
+  char,
+  context,
+}: {
+  band: { bottom: number; top: number };
+  char: string;
+  context: CanvasRenderingContext2D;
+}) {
+  context.font = `${GHOST_TRIAL_FONT_SIZE}px ${GHOST_FONT_STACK}`;
+  context.textAlign = "center";
+  context.textBaseline = "alphabetic";
+
+  const metrics = context.measureText(char);
+  const measuredAscent = metrics.actualBoundingBoxAscent;
+  const measuredDescent = metrics.actualBoundingBoxDescent;
+
+  if (!Number.isFinite(measuredAscent) || measuredAscent <= 0) {
+    return;
+  }
+
+  const layout = getGhostLetterLayout({
+    band,
+    canvasSize: CANVAS_SIZE,
+    measuredAscent,
+    measuredDescent: Number.isFinite(measuredDescent) ? measuredDescent : 0,
+    trialFontSize: GHOST_TRIAL_FONT_SIZE,
+  });
+
+  context.font = `${layout.fontSize}px ${GHOST_FONT_STACK}`;
+  context.fillStyle = GHOST_COLOR;
+  context.fillText(
+    char,
+    LABEL_GUTTER + (CANVAS_SIZE - LABEL_GUTTER) / 2,
+    layout.baselineY,
   );
 }
 
