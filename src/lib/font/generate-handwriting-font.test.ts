@@ -4,6 +4,7 @@ import type { LetterDetection } from "@/lib/extraction/schemas";
 import type { HandwritingFontSource } from "@/lib/font/types";
 
 const traceCalls: string[] = [];
+const trustInkCalls: string[] = [];
 const closedBitmaps: string[] = [];
 
 mock.module("@/lib/font/helpers/build-glyphs", () => ({
@@ -36,13 +37,16 @@ mock.module("@/lib/font/helpers/build-glyphs", () => ({
   traceGlyph: ({
     detection,
     imageBitmap,
+    trustInk,
   }: {
     detection: LetterDetection;
     imageBitmap: { id: string };
+    trustInk?: boolean;
   }) => {
     traceCalls.push(
       `${detection.char}:${detection.confidence}:${imageBitmap.id}`,
     );
+    trustInkCalls.push(`${detection.char}:${String(Boolean(trustInk))}`);
 
     if (detection.issues.includes("force-fail")) {
       return null;
@@ -62,6 +66,7 @@ const { generateHandwritingFont } = await import("./generate-handwriting-font");
 describe("generateHandwritingFont", () => {
   beforeEach(() => {
     traceCalls.length = 0;
+    trustInkCalls.length = 0;
     closedBitmaps.length = 0;
 
     Object.assign(globalThis, {
@@ -99,6 +104,27 @@ describe("generateHandwritingFont", () => {
     expect(font.missingLetters).not.toContain("A");
     expect(font.missingLetters).not.toContain("a");
     expect(closedBitmaps).toEqual(["first", "second"]);
+  });
+
+  test("keeps photo sources on the noise heuristics", async () => {
+    await generateHandwritingFont({
+      sources: [createSource("photo", [createDetection("A", 0.9)])],
+    });
+
+    expect(trustInkCalls).toContain("A:false");
+  });
+
+  test("trusts ink from drawn sources", async () => {
+    await generateHandwritingFont({
+      sources: [
+        {
+          ...createSource("drawn", [createDetection("A", 1)]),
+          kind: "drawn" as const,
+        },
+      ],
+    });
+
+    expect(trustInkCalls).toContain("A:true");
   });
 });
 

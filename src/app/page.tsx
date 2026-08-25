@@ -26,12 +26,20 @@ export default function Home() {
           width={480}
         />
 
-        <a
-          className="flex h-14 w-[166px] items-center justify-center bg-button text-sm font-medium text-button-foreground shadow-[0_10px_28px_rgba(43,38,34,0.08)] hover:bg-button-hover"
-          href="/upload"
-        >
-          Start here
-        </a>
+        <div className="flex flex-col items-center gap-4 sm:flex-row">
+          <a
+            className="flex h-14 w-[166px] items-center justify-center bg-button text-sm font-medium text-button-foreground shadow-[0_10px_28px_rgba(43,38,34,0.08)] hover:bg-button-hover"
+            href="/upload"
+          >
+            Start here
+          </a>
+          <a
+            className="flex h-14 w-[166px] items-center justify-center bg-stone text-sm font-medium text-ink ring-1 ring-inset ring-ink/12 hover:bg-linen"
+            href="/draw"
+          >
+            No paper? Draw it
+          </a>
+        </div>
       </section>
     </main>
   );

@@ -28,3 +28,23 @@ export function getFontCanvasContext(canvas: FontCanvas): FontCanvasContext {
 
   return context;
 }
+
+export function fontCanvasToBlob(
+  canvas: FontCanvas,
+  type = "image/png",
+): Promise<Blob> {
+  if ("convertToBlob" in canvas) {
+    return canvas.convertToBlob({ type });
+  }
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+        return;
+      }
+
+      reject(new Error("Canvas image could not be created."));
+    }, type);
+  });
+}
