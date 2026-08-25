@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import {
   paintDrawnStroke,
   type DrawnPoint,
@@ -26,7 +26,7 @@ const LABEL_IDLE = "#b8b0a3";
 
 const GHOST_TRIAL_FONT_SIZE = 100;
 const GHOST_COLOR = "rgba(43, 38, 34, 0.13)";
-const GHOST_FONT_STACK = '"New HandWrite", "Bradley Hand", cursive';
+const GHOST_FONT_STACK = "ui-sans-serif, system-ui, sans-serif";
 
 export function GlyphCanvas({
   char,
@@ -39,9 +39,6 @@ export function GlyphCanvas({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const activeStrokeRef = useRef<DrawnStroke | null>(null);
-  const [fontReady, setFontReady] = useState(
-    () => typeof document === "undefined" || !("fonts" in document),
-  );
 
   const getContext = useCallback(() => {
     const canvas = canvasRef.current;
@@ -92,7 +89,7 @@ export function GlyphCanvas({
       context.fillText(GUIDE_LABELS[guide], 4, y);
     }
 
-    if (strokes.length === 0 && fontReady) {
+    if (strokes.length === 0) {
       paintGhostLetter({ band, char, context });
     }
 
@@ -108,32 +105,11 @@ export function GlyphCanvas({
         stroke,
       });
     }
-  }, [char, fontReady, getContext, strokes]);
+  }, [char, getContext, strokes]);
 
   useEffect(() => {
     redraw();
   }, [redraw]);
-
-  useEffect(() => {
-    if (typeof document === "undefined" || !document.fonts) {
-      return;
-    }
-
-    let cancelled = false;
-
-    document.fonts
-      .load(`${GHOST_TRIAL_FONT_SIZE}px "New HandWrite"`)
-      .catch(() => undefined)
-      .finally(() => {
-        if (!cancelled) {
-          setFontReady(true);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   function getPoint(event: React.PointerEvent<HTMLCanvasElement>): DrawnPoint {
     const rect = event.currentTarget.getBoundingClientRect();
