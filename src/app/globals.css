@@ -86,6 +86,10 @@
     --spotlight-cell: var(--paper-grid-size, 32px);
     --spotlight-paper-radius: 240px;
     --spotlight-reveal-radius: 56px;
+    --spotlight-safe-top: calc(50% - 180px);
+    --spotlight-safe-right: calc(50% + 250px);
+    --spotlight-safe-bottom: calc(50% + 180px);
+    --spotlight-safe-left: calc(50% - 250px);
     position: fixed;
     inset: 0;
     z-index: 0;
@@ -178,28 +182,33 @@
 }
 
 .home-spotlight__letters--top {
-    clip-path: polygon(0 0, 100% 0, 100% calc(50% - 180px), 0 calc(50% - 180px));
+    clip-path: polygon(0 0, 100% 0, 100% var(--spotlight-safe-top), 0 var(--spotlight-safe-top));
 }
 
 .home-spotlight__letters--bottom {
-    clip-path: polygon(0 calc(50% + 180px), 100% calc(50% + 180px), 100% 100%, 0 100%);
+    clip-path: polygon(
+        0 var(--spotlight-safe-bottom),
+        100% var(--spotlight-safe-bottom),
+        100% 100%,
+        0 100%
+    );
 }
 
 .home-spotlight__letters--left {
     clip-path: polygon(
-        0 calc(50% - 180px),
-        calc(50% - 250px) calc(50% - 180px),
-        calc(50% - 250px) calc(50% + 180px),
-        0 calc(50% + 180px)
+        0 var(--spotlight-safe-top),
+        var(--spotlight-safe-left) var(--spotlight-safe-top),
+        var(--spotlight-safe-left) var(--spotlight-safe-bottom),
+        0 var(--spotlight-safe-bottom)
     );
 }
 
 .home-spotlight__letters--right {
     clip-path: polygon(
-        calc(50% + 250px) calc(50% - 180px),
-        100% calc(50% - 180px),
-        100% calc(50% + 180px),
-        calc(50% + 250px) calc(50% + 180px)
+        var(--spotlight-safe-right) var(--spotlight-safe-top),
+        100% var(--spotlight-safe-top),
+        100% var(--spotlight-safe-bottom),
+        var(--spotlight-safe-right) var(--spotlight-safe-bottom)
     );
 }
 
@@ -211,14 +220,6 @@
 
     .home-spotlight__letter {
         font-size: 23px;
-    }
-
-    .home-spotlight__letters--top {
-        clip-path: polygon(0 0, 100% 0, 100% calc(50% - 160px), 0 calc(50% - 160px));
-    }
-
-    .home-spotlight__letters--bottom {
-        clip-path: polygon(0 calc(50% + 160px), 100% calc(50% + 160px), 100% 100%, 0 100%);
     }
 
     .home-spotlight__letters--left,
