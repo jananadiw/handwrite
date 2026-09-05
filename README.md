@@ -4,10 +4,11 @@
 
 [Watch the HandWrite preview](./public/handwrite-preview.mov)
 
-HandWrite turns a clear photo of handwritten letters into a downloadable TrueType font. The app guides someone through uploading an alphabet sample, analyzes the photo with Gemini, traces the detected glyphs in the browser, and exports a `.ttf` file for review and download.
+HandWrite turns your own letterforms into a downloadable TrueType font. Draw letters with a finger, stylus, or trackpad, or upload a clear photo of handwritten letters. The app builds a `.ttf` file in the browser for review and download, without an account or saved uploads.
 
 ## What It Does
 
+- Lets you draw letters directly in the browser without a printed template.
 - Accepts phone photos, including common formats such as JPEG, PNG, WEBP, HEIC, and HEIF.
 - Normalizes uploads to JPEG before analysis.
 - Uses a stateless Next.js API route to ask Gemini for alphabet glyph locations.
@@ -71,6 +72,8 @@ bun run test     # Run Bun tests with the project test setup
 ```text
 src/app/
   page.tsx                    Home page
+  home-spotlight.tsx          Pointer-following background letter reveal
+  draw/                       Direct drawing and font-generation UI
   upload/                     Upload, analysis, generation, and review UI
   api/extract/analyze/        Stateless Gemini analysis route
 
@@ -81,14 +84,19 @@ src/lib/server/               Server-only environment helpers
 src/test/                     Test setup
 ```
 
+Project references:
+
+- [Product requirements](./context/PRD.md)
+- [Source map](./context/TREE.md)
+- [Durable project decisions](./context/decisions.md)
+
 ## How The Flow Works
 
-1. The user uploads a photo of handwritten alphabet samples.
-2. The browser checks the file type and size, then normalizes the image to JPEG.
-3. The `/api/extract/analyze` route sends the image bytes to Gemini.
-4. Gemini returns structured glyph detections validated by local schemas.
-5. The browser starts a Web Worker to clean glyph masks, trace paths, and build a `.ttf`.
-6. The UI displays the generated font preview and download action.
+1. The user chooses to draw letters in the browser or upload a photo.
+2. The drawing path records the user's strokes and sends them straight to font generation.
+3. The photo path normalizes the image to JPEG and sends it to `/api/extract/analyze` for Gemini glyph detection.
+4. The browser starts a Web Worker to trace the captured glyphs and build a `.ttf`.
+5. The UI displays the generated font preview and download action.
 
 ## Notes
 

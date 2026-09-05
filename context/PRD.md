@@ -1,9 +1,9 @@
 
 ## overview
-Handwrite is a web app that converts a photo of handwritten letters into a downloadable .ttf font file. Users write the alphabet on paper, take a photo, upload it, and receive a working font
+Handwrite is a web app that converts a user's own letterforms into a downloadable .ttf font file. Users can draw letters in the browser or upload a photo of letters written on paper, then preview and download a working font.
 
 ## goals
-1. Working end-to-end flow: photo → AI extraction → font preview → .ttf download
+1. Working end-to-end flow: draw or upload → glyph extraction → font preview → .ttf download
 2. AI glyph extraction accurate enough for everyday handwriting
 3. Free to use with user's own API key
 4. Deployed and publicly accessible on Vercel
@@ -20,11 +20,12 @@ Handwrite is a web app that converts a photo of handwritten letters into a downl
 
 ## Step	User action	App behaviour
 
-1. Lands on app ->	Shows instruction card — letter size, pen, lighting, plain paper
-2. Uploads photo ->	Accepts any format. Silently converts HEIC → JPEG, resizes to max 2000px.
-3. Clicks generate ->	Calls /api/extract. Shows loading state. Key never leaves server.
-4. Sees preview ->	A–Z rendered on canvas using extracted glyph paths.
-5. Downloads font ->	.ttf file downloaded via browser. No account needed.
+1. Lands on app ->	Explains the private, template-free service and offers draw or upload paths.
+2. Draws letters ->	Captures strokes from a finger, stylus, mouse, or trackpad without a printed template.
+3. Uploads photo ->	Accepts common image formats. Silently converts HEIC → JPEG, resizes to max 2000px.
+4. Clicks generate ->	Builds drawn letters locally or calls /api/extract for an uploaded photo. The key never leaves the server.
+5. Sees preview ->	A–Z rendered on canvas using the captured glyph paths.
+6. Downloads font ->	.ttf file downloaded via browser. No account needed.
 
 ## Constraints & Known Limits
 

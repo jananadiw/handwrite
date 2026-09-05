@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 const SPOTLIGHT_ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const SPOTLIGHT_CELL_SIZE = 32;
 const DEFAULT_SPOTLIGHT_LETTER_COUNT = SPOTLIGHT_ALPHABET.length * 28;
+const SAFE_AREA_PADDING = 28;
 
 function getSpotlightLetterCount() {
   const columns = Math.ceil(window.innerWidth / SPOTLIGHT_CELL_SIZE);
@@ -59,9 +60,35 @@ export function HomeSpotlight() {
     let currentY = window.innerHeight * 0.48;
     let targetX = currentX;
     let targetY = currentY;
+    const safeArea = document.querySelector<HTMLElement>(
+      "[data-home-spotlight-safe-area]",
+    );
 
-    const syncLetterCount = () => {
+    const syncLayout = () => {
       setLetterCount(getSpotlightLetterCount());
+
+      if (!safeArea) {
+        return;
+      }
+
+      const bounds = safeArea.getBoundingClientRect();
+
+      element.style.setProperty(
+        "--spotlight-safe-top",
+        `${Math.max(0, bounds.top - SAFE_AREA_PADDING)}px`,
+      );
+      element.style.setProperty(
+        "--spotlight-safe-right",
+        `${Math.min(window.innerWidth, bounds.right + SAFE_AREA_PADDING)}px`,
+      );
+      element.style.setProperty(
+        "--spotlight-safe-bottom",
+        `${Math.min(window.innerHeight, bounds.bottom + SAFE_AREA_PADDING)}px`,
+      );
+      element.style.setProperty(
+        "--spotlight-safe-left",
+        `${Math.max(0, bounds.left - SAFE_AREA_PADDING)}px`,
+      );
     };
 
     const render = () => {
@@ -79,14 +106,20 @@ export function HomeSpotlight() {
       targetY = event.clientY;
     };
 
-    syncLetterCount();
+    const resizeObserver = safeArea ? new ResizeObserver(syncLayout) : null;
+
+    syncLayout();
+    if (safeArea && resizeObserver) {
+      resizeObserver.observe(safeArea);
+    }
     window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("resize", syncLetterCount);
+    window.addEventListener("resize", syncLayout);
     frame = window.requestAnimationFrame(render);
 
     return () => {
+      resizeObserver?.disconnect();
       window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("resize", syncLetterCount);
+      window.removeEventListener("resize", syncLayout);
       window.cancelAnimationFrame(frame);
     };
   }, []);

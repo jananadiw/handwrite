@@ -11,12 +11,12 @@
 
 - Use `Discuss -> Plan -> Execute -> Verify`.
 - Do not code before plan approval unless the user asks for a mechanical edit.
-- During planning, name assumptions, success criteria, and likely `context/tree.md` nodes.
+- During planning, name assumptions, success criteria, and likely `context/TREE.md` nodes.
 - During execution, inspect nearby source first and keep edits scoped.
 - During verification, check behavior, tests or lint, orphaned code, and decision drift.
 
 ## Retrieval
 
-- Keep context stingy; start with `context/tree.md`.
+- Keep context stingy; start with `context/TREE.md`.
 - Use `README.md` only for setup, stack, or full structure.
 <!-- END:agent-rules -->
