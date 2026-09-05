@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "bun test --preload ./src/test/setup.ts",
+    "test": "bun test",
     "prepare:gemma4-data": "node scripts/prepare-gemma4-handwriting-data.mjs"
   },
   "dependencies": {
