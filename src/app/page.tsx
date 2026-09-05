@@ -18,8 +18,8 @@ export default function Home() {
             Turn your beautiful handwriting into a font.
           </h1>
           <p className="max-w-[560px] text-pretty text-base font-light leading-7 text-subtitle sm:text-lg sm:leading-8">
-            Draw a few letters here, or upload a photo of your alphabet. Preview
-            and download your .ttf.
+            No printed templates. No account. No saved uploads. Just your
+            handwriting, turned into a font that’s truly yours.
           </p>
         </div>
 
