@@ -12,8 +12,11 @@ handwrite/
 |   `-- TREE.md                       # compact source map
 |-- src/app/                          # Next.js App Router routes and globals
 |   |-- globals.css                   # global Tailwind/theme styles
+|   |-- home-spotlight.tsx            # homepage pointer-following letter reveal
 |   |-- layout.tsx                    # root HTML/body shell and metadata
-|   `-- page.tsx                      # home route UI
+|   |-- page.tsx                      # home route UI
+|   |-- draw/                         # direct drawing and font-generation flow
+|   `-- upload/                       # photo upload and extraction flow
 |-- next.config.ts                    # Next.js configuration
 |-- eslint.config.mjs                 # ESLint configuration
 |-- postcss.config.mjs                # PostCSS/Tailwind configuration
