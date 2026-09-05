@@ -8,7 +8,7 @@ export type GeneratedHandwritingFont = {
   missingLetters: string[];
 };
 
-export type HandwritingFontSourceKind = "photo" | "drawn";
+type HandwritingFontSourceKind = "photo" | "drawn";
 
 export type HandwritingFontSource = {
   analysis: AlphabetAnalysis;

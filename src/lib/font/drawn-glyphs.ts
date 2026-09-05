@@ -15,9 +15,9 @@ import type { HandwritingFontSource } from "@/lib/font/types";
 
 export const DRAWN_CELL_SIZE = 256;
 export const DRAWN_GRID_COLUMNS = 8;
-export const DRAWN_CELL_INSET_RATIO = 0.2;
-export const DRAWN_STROKE_WIDTH_RATIO = 0.055;
-export const DRAWN_PRESSURE_WIDTH_RANGE = 0.5;
+const DRAWN_CELL_INSET_RATIO = 0.2;
+const DRAWN_STROKE_WIDTH_RATIO = 0.055;
+const DRAWN_PRESSURE_WIDTH_RANGE = 0.5;
 
 export type DrawnChar = LetterDetection["char"];
 
@@ -110,7 +110,7 @@ export function createDrawnAnalysis(
   };
 }
 
-export function renderDrawnGlyphs(glyphs: DrawnGlyph[]) {
+function renderDrawnGlyphs(glyphs: DrawnGlyph[]) {
   const layout = getDrawnGridLayout(glyphs.length);
   const canvas = createFontCanvas(layout.width, layout.height);
   const context = getFontCanvasContext(canvas);
