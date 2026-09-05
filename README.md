@@ -84,6 +84,12 @@ src/lib/server/               Server-only environment helpers
 src/test/                     Test setup
 ```
 
+Project references:
+
+- [Product requirements](./context/PRD.md)
+- [Source map](./context/TREE.md)
+- [Durable project decisions](./context/decisions.md)
+
 ## How The Flow Works
 
 1. The user chooses to draw letters in the browser or upload a photo.
