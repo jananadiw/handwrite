@@ -91,7 +91,7 @@ describe("draw UI DOM output", () => {
     const html = renderToStaticMarkup(React.createElement(DrawGlyphsForm));
 
     expect(html).toContain("Sit A between the cap line and the baseline.");
-    expect(html).toContain("The faded letter shows the size and position");
+    expect(html).toContain("The dashed outline shows the size and position");
   });
 });
 

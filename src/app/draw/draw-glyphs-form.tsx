@@ -167,8 +167,9 @@ export function DrawGlyphsForm() {
               <p aria-live="polite" className="mt-3 text-sm leading-6 text-ink">
                 {getLetterZoneCopy(activeChar)}{" "}
                 <span className="text-subtitle">
-                  The faded letter shows the size and position to aim for. Write
-                  it your own way — it disappears once you start.
+                  The dashed outline shows the size and position to aim for.
+                  It stays visible while you write. When you’re done, choose Next
+                  letter.
                 </span>
               </p>
 
