@@ -25,7 +25,7 @@ const LABEL_ACTIVE = "#66795a";
 const LABEL_IDLE = "#b8b0a3";
 
 const GHOST_TRIAL_FONT_SIZE = 100;
-const GHOST_COLOR = "rgba(43, 38, 34, 0.35)";
+const GHOST_COLOR = "rgba(43, 38, 34, 0.13)";
 const GHOST_FONT_STACK = "ui-sans-serif, system-ui, sans-serif";
 
 export function GlyphCanvas({
@@ -206,18 +206,12 @@ function paintGhostLetter({
   });
 
   context.font = `${layout.fontSize}px ${GHOST_FONT_STACK}`;
-  context.save();
-  context.strokeStyle = GHOST_COLOR;
-  context.lineWidth = 1.5;
-  context.lineCap = "round";
-  context.lineJoin = "round";
-  context.setLineDash([5, 5]);
-  context.strokeText(
+  context.fillStyle = GHOST_COLOR;
+  context.fillText(
     char,
     LABEL_GUTTER + (CANVAS_SIZE - LABEL_GUTTER) / 2,
     layout.baselineY,
   );
-  context.restore();
 }
 
 function clampUnit(value: number) {
