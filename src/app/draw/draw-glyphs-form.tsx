@@ -7,14 +7,15 @@ import {
   buildDrawnGlyphs,
   canGenerateDrawnFont,
   getDrawHeaderCopy,
+  getDrawnChars,
   getDrawProgressLine,
   getNextUndrawnChar,
   type DrawnStatus,
   type DrawnStrokesByChar,
 } from "./draw-helpers";
 import { GlyphCanvas } from "./glyph-canvas";
-import { GlyphPicker } from "./glyph-picker";
-import { getLetterZoneCopy } from "./letter-guides";
+import { LetterCollection } from "./letter-collection";
+import { SUPPORTED_GLYPHS } from "@/lib/extraction/constants";
 
 import {
   createDrawnFontSource,
@@ -40,6 +41,7 @@ export function DrawGlyphsForm() {
   );
   const headerCopy = getDrawHeaderCopy(status);
   const activeStrokes = strokesByChar[activeChar] ?? [];
+  const drawnCount = getDrawnChars(strokesByChar).length;
   const canGenerate = canGenerateDrawnFont(strokesByChar, status);
 
   useEffect(() => {
@@ -151,9 +153,25 @@ export function DrawGlyphsForm() {
                     {activeChar}
                   </span>
                 </p>
-                <p className="text-sm font-medium text-muted">
-                  {getDrawProgressLine(strokesByChar)}
-                </p>
+                <div className="flex items-center gap-3">
+                  <span aria-hidden="true" className="text-sm tabular-nums text-muted">
+                    {drawnCount} / {SUPPORTED_GLYPHS.length}
+                  </span>
+                  <div
+                    aria-label="Letters drawn"
+                    aria-valuemax={SUPPORTED_GLYPHS.length}
+                    aria-valuemin={0}
+                    aria-valuenow={drawnCount}
+                    aria-valuetext={getDrawProgressLine(strokesByChar)}
+                    className="h-1 w-16 overflow-hidden rounded-full bg-ink/10 sm:w-24"
+                    role="progressbar"
+                  >
+                    <div
+                      className="h-full bg-button transition-[width] duration-300 motion-reduce:transition-none"
+                      style={{ width: `${(drawnCount / SUPPORTED_GLYPHS.length) * 100}%` }}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="mt-3 flex justify-center bg-linen/40 p-4">
@@ -164,13 +182,8 @@ export function DrawGlyphsForm() {
                 />
               </div>
 
-              <p aria-live="polite" className="mt-3 text-sm leading-6 text-ink">
-                {getLetterZoneCopy(activeChar)}{" "}
-                <span className="text-subtitle">
-                  The faded letter shows the size and position to aim for.
-                  It stays visible while you write. When you’re done, choose Next
-                  letter.
-                </span>
+              <p className="mt-2 text-center text-xs text-muted">
+                Follow the faded guide.
               </p>
 
               <div className="mt-3 grid grid-cols-3 gap-3">
@@ -199,16 +212,11 @@ export function DrawGlyphsForm() {
                 </button>
               </div>
 
-              <GlyphPicker
+              <LetterCollection
                 activeChar={activeChar}
                 onSelectChar={setActiveChar}
                 strokesByChar={strokesByChar}
               />
-
-              <p className="mt-4 text-sm leading-6 text-subtitle">
-                Draw as few or as many letters as you like. Undrawn lowercase
-                letters fall back to your uppercase shapes.
-              </p>
 
               {error ? (
                 <p

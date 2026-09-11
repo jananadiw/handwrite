@@ -16,6 +16,7 @@ mock.module("next/link", () => ({
 const { DrawGlyphsForm } = await import("./draw-glyphs-form");
 const { GlyphCanvas } = await import("./glyph-canvas");
 const { GlyphPicker } = await import("./glyph-picker");
+const { LetterCollection } = await import("./letter-collection");
 const {
   buildDrawnGlyphs,
   canGenerateDrawnFont,
@@ -28,7 +29,6 @@ const {
   getGhostLetterLayout,
   getLetterZone,
   getLetterZoneBand,
-  getLetterZoneCopy,
   isZoneGuide,
 } = await import("./letter-guides");
 
@@ -87,11 +87,40 @@ describe("draw UI DOM output", () => {
     expect(html).toContain("Next letter");
   });
 
-  test("names the guides that bound the active letter", () => {
+  test("keeps the canvas hint brief and exposes progress", () => {
     const html = renderToStaticMarkup(React.createElement(DrawGlyphsForm));
 
-    expect(html).toContain("Sit A between the cap line and the baseline.");
-    expect(html).toContain("The faded letter shows the size and position");
+    expect(html).toContain("Follow the faded guide.");
+    expect(html).toContain('role="progressbar"');
+    expect(html).toContain('aria-valuenow="0"');
+    expect(html).not.toContain("Sit A between");
+    expect(html).not.toContain("letters fall back");
+  });
+
+  test("shows only drawn thumbnails and keeps the alphabet collapsed", () => {
+    const html = renderToStaticMarkup(React.createElement(LetterCollection, {
+      activeChar: "B",
+      onSelectChar: () => undefined,
+      strokesByChar: { A: [], B: [SAMPLE_STROKE], g: [SAMPLE_STROKE] },
+    }));
+    const strip = html.slice(0, html.indexOf("<details"));
+    expect(strip).toContain('aria-label="Edit B, drawn"');
+    expect(strip).toContain('aria-label="Edit g, drawn"');
+    expect(strip).not.toContain('aria-label="Edit A');
+    expect(strip).toContain('aria-current="true"');
+    expect((strip.match(/<canvas/g) ?? []).length).toBe(2);
+    expect(html).toContain("Choose letter");
+    expect(html).not.toMatch(/<details[^>]*\bopen/);
+  });
+
+  test("shows a small empty state before any ink is saved", () => {
+    const html = renderToStaticMarkup(React.createElement(LetterCollection, {
+      activeChar: "A",
+      onSelectChar: () => undefined,
+      strokesByChar: {},
+    }));
+    expect(html).toContain("Your collection starts here");
+    expect(html).not.toContain('aria-label="Drawn letters"');
   });
 });
 
@@ -142,9 +171,6 @@ describe("draw workflow helpers", () => {
 describe("letter writing zones", () => {
   test("uppercase spans the cap line to the baseline", () => {
     expect(getLetterZone("A")).toEqual({ bottom: "baseline", top: "capHeight" });
-    expect(getLetterZoneCopy("A")).toBe(
-      "Sit A between the cap line and the baseline.",
-    );
   });
 
   test("plain lowercase spans the x-height to the baseline", () => {
