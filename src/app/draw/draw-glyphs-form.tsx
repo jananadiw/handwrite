@@ -182,10 +182,6 @@ export function DrawGlyphsForm() {
                 />
               </div>
 
-              <p className="mt-2 text-center text-xs text-muted">
-                Follow the faded guide.
-              </p>
-
               <div className="mt-3 grid grid-cols-3 gap-3">
                 <button
                   className={`flex h-11 items-center justify-center bg-stone text-sm font-medium text-ink ring-1 ring-inset ring-ink/10 transition-colors hover:bg-linen disabled:cursor-not-allowed disabled:text-muted ${actionFocusClass}`}

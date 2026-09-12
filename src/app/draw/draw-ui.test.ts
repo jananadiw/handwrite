@@ -87,10 +87,13 @@ describe("draw UI DOM output", () => {
     expect(html).toContain("Next letter");
   });
 
-  test("keeps the canvas hint brief and exposes progress", () => {
+  test("groups drawing instructions in the subtitle and exposes progress", () => {
     const html = renderToStaticMarkup(React.createElement(DrawGlyphsForm));
 
-    expect(html).toContain("Follow the faded guide.");
+    expect(html).toContain(
+      "Draw a few letters with your finger, stylus, or trackpad. Follow the faded guide.",
+    );
+    expect(html.match(/Follow the faded guide\./g)).toHaveLength(1);
     expect(html).toContain('role="progressbar"');
     expect(html).toContain('aria-valuenow="0"');
     expect(html).not.toContain("Sit A between");

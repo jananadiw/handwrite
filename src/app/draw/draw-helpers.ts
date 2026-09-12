@@ -58,7 +58,8 @@ export function getDrawHeaderCopy(status: DrawnStatus) {
   }
 
   return {
-    subtitle: "Draw a few letters with your finger, stylus, or trackpad.",
+    subtitle:
+      "Draw a few letters with your finger, stylus, or trackpad. Follow the faded guide.",
     title: "Write your letters",
   };
 }
