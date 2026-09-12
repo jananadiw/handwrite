@@ -16,7 +16,7 @@ mock.module("next/link", () => ({
 const { DrawGlyphsForm } = await import("./draw-glyphs-form");
 const { GlyphCanvas } = await import("./glyph-canvas");
 const { GlyphPicker } = await import("./glyph-picker");
-const { LetterCollection } = await import("./letter-collection");
+const { LetterChooser } = await import("./letter-chooser");
 const {
   buildDrawnGlyphs,
   canGenerateDrawnFont,
@@ -100,31 +100,27 @@ describe("draw UI DOM output", () => {
     expect(html).not.toContain("letters fall back");
   });
 
-  test("shows only drawn thumbnails and keeps the alphabet collapsed", () => {
-    const html = renderToStaticMarkup(React.createElement(LetterCollection, {
+  test("keeps one alphabet collapsed with drawn-letter status", () => {
+    const html = renderToStaticMarkup(React.createElement(LetterChooser, {
       activeChar: "B",
       onSelectChar: () => undefined,
-      strokesByChar: { A: [], B: [SAMPLE_STROKE], g: [SAMPLE_STROKE] },
+      strokesByChar: { B: [SAMPLE_STROKE] },
     }));
-    const strip = html.slice(0, html.indexOf("<details"));
-    expect(strip).toContain('aria-label="Edit B, drawn"');
-    expect(strip).toContain('aria-label="Edit g, drawn"');
-    expect(strip).not.toContain('aria-label="Edit A');
-    expect(strip).toContain('aria-current="true"');
-    expect((strip.match(/<canvas/g) ?? []).length).toBe(2);
+    expect(html).toContain('aria-label="B, drawn"');
+    expect(html).toContain('aria-current="true"');
     expect(html).toContain("Choose letter");
     expect(html).not.toMatch(/<details[^>]*\bopen/);
   });
 
-  test("shows a small empty state before any ink is saved", () => {
-    const html = renderToStaticMarkup(React.createElement(LetterCollection, {
-      activeChar: "A",
-      onSelectChar: () => undefined,
-      strokesByChar: {},
-    }));
-    expect(html).toContain("Your collection starts here");
-    expect(html).not.toContain('aria-label="Drawn letters"');
+  test("removes the collection and renders one set of drawing controls", () => {
+    const html = renderToStaticMarkup(React.createElement(DrawGlyphsForm));
+    expect(html).not.toContain("Your letters");
+    expect(html).not.toContain("Tap to edit");
+    expect((html.match(/<canvas/g) ?? []).length).toBe(1);
+    expect(html).toContain('aria-label="Drawing controls"');
+    expect((html.match(/>Undo</g) ?? []).length).toBe(1);
   });
+
 });
 
 describe("draw workflow helpers", () => {
