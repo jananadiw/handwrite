@@ -35,7 +35,7 @@ export function LetterChooser({
         ref={triggerRef}
         type="button"
       >
-        Drawing <span className="font-serif text-xl">{activeChar}</span>
+        Drawing <span className="font-serif text-xl italic">{activeChar}</span>
         <span aria-hidden="true" className="ml-1 text-xs text-muted">
           ⌄
         </span>
@@ -51,7 +51,7 @@ export function LetterChooser({
       >
         <div className="p-5 sm:p-6">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="font-serif text-xl">Choose a letter</h2>
+            <h2 className="font-serif text-xl font-bold italic">Choose a letter</h2>
             <button
               aria-label="Close letter picker"
               className="flex h-11 min-w-11 items-center justify-center rounded-md text-sm text-subtitle hover:bg-linen focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button"

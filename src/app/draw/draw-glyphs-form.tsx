@@ -109,7 +109,7 @@ export function DrawGlyphsForm() {
 
   return (
     <section className="mx-auto flex h-full min-h-0 w-full max-w-[min(460px,max(240px,calc(100dvh-300px)))] flex-col justify-center">
-      <div className="flex max-h-full flex-col">
+      <div className="flex max-h-full flex-col bg-stone/95 px-4 pt-3 shadow-[0_18px_50px_rgba(43,38,34,0.08)] ring-1 ring-ink/[0.06] sm:px-5 sm:pt-4">
         <div
           aria-label="Drawing workspace"
           className={`${styles.workspace} min-h-0 overflow-y-auto overscroll-y-contain px-1`}
@@ -119,7 +119,7 @@ export function DrawGlyphsForm() {
           <header className="flex items-center justify-between gap-4">
             <Link
               aria-label="HandWrite home"
-              className={`flex min-h-11 items-center font-serif text-lg font-bold italic text-title ${actionFocusClass}`}
+              className={`flex min-h-11 items-center font-serif text-xl font-bold italic tracking-[-0.02em] text-title ${actionFocusClass}`}
               href="/"
             >
               HandWrite
@@ -132,7 +132,7 @@ export function DrawGlyphsForm() {
             </Link>
           </header>
           <div className="mt-4 mb-5">
-            <h1 className="font-serif text-[28px] leading-tight tracking-[-0.025em] text-title sm:text-[32px]">
+            <h1 className="font-serif text-[32px] font-bold italic leading-[1.12] tracking-[-0.025em] text-title sm:text-[38px]">
               {headerCopy.title}
             </h1>
             <p className="mt-2 max-w-[360px] text-sm leading-6 text-subtitle">
