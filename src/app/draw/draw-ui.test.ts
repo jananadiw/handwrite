@@ -73,7 +73,7 @@ describe("draw UI DOM output", () => {
 
     expect(html).toContain("Write your letters");
     expect(html).toContain("0 of 52 letters drawn");
-    expect(html).toContain("Generate font");
+    expect(html).toContain("Preview font");
     expect(html).toContain("disabled");
     expect(html).toContain('href="/upload"');
     expect(html).toContain("Use a photo instead");
@@ -100,7 +100,7 @@ describe("draw UI DOM output", () => {
     expect(html).not.toContain("letters fall back");
   });
 
-  test("keeps one alphabet collapsed with drawn-letter status", () => {
+  test("keeps the alphabet in a closed dialog with drawn-letter status", () => {
     const html = renderToStaticMarkup(React.createElement(LetterChooser, {
       activeChar: "B",
       onSelectChar: () => undefined,
@@ -109,7 +109,8 @@ describe("draw UI DOM output", () => {
     expect(html).toContain('aria-label="B, drawn"');
     expect(html).toContain('aria-current="true"');
     expect(html).toContain("Choose letter");
-    expect(html).not.toMatch(/<details[^>]*\bopen/);
+    expect(html).toContain("<dialog");
+    expect(html).not.toMatch(/<dialog[^>]*\bopen/);
   });
 
   test("removes the collection and renders one set of drawing controls", () => {

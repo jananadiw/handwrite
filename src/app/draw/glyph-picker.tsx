@@ -56,7 +56,7 @@ function GlyphRow({
       </p>
       <div
         aria-label={`${label} letters`}
-        className="mt-2 grid grid-cols-[repeat(9,minmax(0,1fr))] gap-1.5 sm:grid-cols-[repeat(13,minmax(0,1fr))]"
+        className="mt-2 grid grid-cols-[repeat(5,minmax(0,1fr))] gap-1.5 sm:grid-cols-[repeat(8,minmax(0,1fr))]"
         role="group"
       >
         {chars.map((char) => {
@@ -67,7 +67,7 @@ function GlyphRow({
             <button
               aria-current={isActive ? "true" : undefined}
               aria-label={`${char}${isDrawn ? ", drawn" : ", not drawn yet"}`}
-              className={`flex min-h-11 items-center justify-center text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-2 ${
+              className={`flex min-h-11 rounded-md items-center justify-center text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-2 ${
                 isActive
                   ? "bg-button text-button-foreground"
                   : isDrawn
