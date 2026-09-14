@@ -1,6 +1,12 @@
 "use client";
 
-import Link from "next/link";
+import {
+  WorkspaceHeader,
+  WorkspaceIntro,
+  workspaceSectionClass,
+  workspacePanelClass,
+  workspaceContentClass,
+} from "../components/workspace";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { analyzePhoto } from "./analyze-photo";
 import { FontReview } from "./font-review";
@@ -36,8 +42,9 @@ export function UploadPhotoForm() {
   const captureModeRef = useRef<CaptureMode>("initial");
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [sourceFile, setSourceFile] = useState<File | null>(null);
-  const [normalisedPhoto, setNormalisedPhoto] =
-    useState<NormalisedJpeg | null>(null);
+  const [normalisedPhoto, setNormalisedPhoto] = useState<NormalisedJpeg | null>(
+    null,
+  );
   const [analysis, setAnalysis] = useState<AlphabetAnalysis | null>(null);
   const [fontSources, setFontSources] = useState<HandwritingFontSource[]>([]);
   const [generatedFont, setGeneratedFont] =
@@ -168,7 +175,8 @@ export function UploadPhotoForm() {
     }
 
     const captureMode = captureModeRef.current;
-    const supplemental = captureMode === "supplemental" && fontSources.length > 0;
+    const supplemental =
+      captureMode === "supplemental" && fontSources.length > 0;
 
     setStatus("analyzing");
     setAnalysis(null);
@@ -224,92 +232,74 @@ export function UploadPhotoForm() {
   }
 
   return (
-    <section
-      className={`mx-auto flex h-full min-h-0 w-full max-w-[680px] items-start justify-center sm:items-center ${
-        sourceFile ? "pb-24 sm:pb-0" : ""
-      }`}
-    >
-      <div
-        aria-label="Upload workspace"
-        className="upload-scroll max-h-full w-full overflow-x-hidden overflow-y-auto overscroll-y-contain bg-stone/95 px-5 py-5 shadow-[0_18px_50px_rgba(43,38,34,0.08)] ring-1 ring-ink/[0.06] backdrop-blur-[2px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-2 sm:px-8 sm:py-7"
-        role="region"
-        tabIndex={0}
-      >
-        <header className="flex items-center justify-between">
-          <Link
-            aria-label="HandWrite home"
-            className="inline-flex min-h-11 items-center font-serif text-xl font-bold italic tracking-[-0.02em] text-title transition-colors hover:text-subtitle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-4"
-            href="/"
-          >
-            HandWrite
-          </Link>
-          <Link
-            className="min-h-11 text-sm font-medium text-subtitle underline decoration-ink/25 underline-offset-4 transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-2"
-            href="/draw"
-          >
-            No paper? Draw it
-          </Link>
-        </header>
-
+    <section className={workspaceSectionClass}>
+      <div className={workspacePanelClass}>
         <div
-          aria-busy={processing}
-          className="mt-8 sm:mt-10"
+          aria-label="Upload workspace"
+          className={workspaceContentClass}
+          role="region"
+          tabIndex={0}
         >
-          <div className="text-left">
-            <h1 className="max-w-[600px] font-serif text-[36px] font-bold italic leading-[1.12] tracking-[-0.025em] text-title sm:text-[46px]">
-              {headerCopy.title}
-            </h1>
-            {headerCopy.subtitle ? (
-              <p className="mt-3 max-w-[480px] text-base leading-7 text-subtitle">
-                {headerCopy.subtitle}
-              </p>
+          <WorkspaceHeader href="/draw">No paper? Draw it</WorkspaceHeader>
+          <div aria-busy={processing}>
+            <WorkspaceIntro
+              title={headerCopy.title}
+              subtitle={headerCopy.subtitle}
+            />
+
+            {!sourceFile ? (
+              <>
+                <PhotoDropZone
+                  describedById={guidelinesId}
+                  inputId={inputId}
+                  onDrop={handleDrop}
+                />
+                <UploadLimitNotice />
+                <PhotoGuidelines id={guidelinesId} />
+              </>
+            ) : null}
+
+            <input
+              accept="image/*"
+              className="sr-only"
+              id={inputId}
+              onChange={(event) => handleFiles(event.target.files)}
+              ref={inputRef}
+              type="file"
+            />
+
+            {status !== "generated" ? (
+              <UploadState
+                analysis={analysis}
+                error={error}
+                file={sourceFile}
+                normalisedPhoto={normalisedPhoto}
+                onChangePhoto={
+                  processing ? undefined : () => inputRef.current?.click()
+                }
+                photoPreviewUrl={normalisedPhotoUrl}
+                status={status}
+              />
+            ) : null}
+
+            {status === "generated" && generatedFont && generatedFontUrl ? (
+              <FontReview
+                error={error}
+                generatedFont={generatedFont}
+                fontUrl={generatedFontUrl}
+              />
             ) : null}
           </div>
 
-          {!sourceFile ? (
-            <>
-              <PhotoDropZone
-                describedById={guidelinesId}
-                inputId={inputId}
-                onDrop={handleDrop}
-              />
-              <UploadLimitNotice />
-              <PhotoGuidelines id={guidelinesId} />
-            </>
-          ) : null}
-
-          <input
-            accept="image/*"
-            className="sr-only"
-            id={inputId}
-            onChange={(event) => handleFiles(event.target.files)}
-            ref={inputRef}
-            type="file"
-          />
-
-          {status !== "generated" ? (
-            <UploadState
-              analysis={analysis}
-              error={error}
-              file={sourceFile}
-              normalisedPhoto={normalisedPhoto}
-              onChangePhoto={
-                processing ? undefined : () => inputRef.current?.click()
-              }
-              photoPreviewUrl={normalisedPhotoUrl}
-              status={status}
-            />
-          ) : null}
-
-          {status === "generated" && generatedFont && generatedFontUrl ? (
-            <FontReview
-              error={error}
-              generatedFont={generatedFont}
+          {showReplaceFontDialog && generatedFont && generatedFontUrl ? (
+            <ReplaceFontDialog
               fontUrl={generatedFontUrl}
+              generatedFont={generatedFont}
+              onCancel={() => setShowReplaceFontDialog(false)}
+              onConfirm={confirmUploadAnotherPhoto}
             />
           ) : null}
         </div>
-
         {sourceFile ? (
           <UploadActions
             generatedFont={generatedFont}
@@ -327,15 +317,6 @@ export function UploadPhotoForm() {
               hasMissingGlyphs ? "Add missing letters" : "Upload another photo"
             }
             status={status}
-          />
-        ) : null}
-
-        {showReplaceFontDialog && generatedFont && generatedFontUrl ? (
-          <ReplaceFontDialog
-            fontUrl={generatedFontUrl}
-            generatedFont={generatedFont}
-            onCancel={() => setShowReplaceFontDialog(false)}
-            onConfirm={confirmUploadAnotherPhoto}
           />
         ) : null}
       </div>

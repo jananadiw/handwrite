@@ -163,7 +163,7 @@ export function GlyphCanvas({
   return (
     <canvas
       aria-label={`Drawing area for the letter ${char}`}
-      className="aspect-square w-full touch-none rounded-lg bg-white ring-1 ring-ink/10"
+      className="aspect-square w-full touch-none bg-white ring-1 ring-ink/10"
       height={CANVAS_SIZE}
       onPointerCancel={handlePointerUp}
       onPointerDown={handlePointerDown}

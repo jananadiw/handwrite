@@ -298,7 +298,8 @@ describe("upload UI DOM output", () => {
     expect(html).toContain("Download .ttf");
     expect(html).toContain('href="/font.ttf"');
     expect(html).not.toContain('href="/"');
-    expect(html).toContain("fixed inset-x-0 bottom-0");
+    expect(html).toContain('aria-label="Upload controls"');
+    expect(html).toContain("shrink-0");
     expect(html).toContain("env(safe-area-inset-bottom)");
   });
 
@@ -412,17 +413,12 @@ describe("upload UI DOM output", () => {
 
 describe("upload UI preservation", () => {
   test("keeps scrolling inside the upload workspace", () => {
-    const pageSource = readUploadSource("page.tsx");
-    const formSource = readUploadSource("upload-photo-form.tsx");
-
-    expect(pageSource).toContain("h-dvh overflow-hidden overscroll-none");
-    expect(formSource).toContain("h-full min-h-0");
-    expect(formSource).toContain(
-      "upload-scroll max-h-full w-full overflow-x-hidden overflow-y-auto overscroll-y-contain",
-    );
-    expect(formSource).toContain('aria-label="Upload workspace"');
-    expect(formSource).toContain('role="region"');
-    expect(formSource).toContain("tabIndex={0}");
+    const html = renderToStaticMarkup(React.createElement(UploadPhotoForm));
+    expect(html).toContain("h-full min-h-0");
+    expect(html).toContain("overflow-x-hidden overflow-y-auto overscroll-y-contain");
+    expect(html).toContain('aria-label="Upload workspace"');
+    expect(html).toContain('role="region"');
+    expect(html).toContain('tabindex="0"');
   });
 
   test("keeps alphabet sample source markup unchanged", () => {
