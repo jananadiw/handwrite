@@ -1,4 +1,5 @@
-import { actionClass } from "../components/action-button";
+import { FontDownload } from "../components/font-download";
+import { ActionButton } from "../components/action-button";
 import type { GeneratedHandwritingFont } from "@/lib/font/generate-handwriting-font";
 
 const dialogActionFocusClass =
@@ -40,20 +41,10 @@ export function ReplaceFontDialog({
         </p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_1fr]">
-          <a
-            className={actionClass("primary")}
-            download={generatedFont.fileName}
-            href={fontUrl}
-          >
-            Download .ttf
-          </a>
-          <button
-            className={actionClass("secondary")}
-            onClick={onConfirm}
-            type="button"
-          >
+          <FontDownload fileName={generatedFont.fileName} url={fontUrl} />
+          <ActionButton variant="secondary" onClick={onConfirm}>
             Upload anyway
-          </button>
+          </ActionButton>
         </div>
 
         <button

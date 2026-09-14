@@ -1,13 +1,13 @@
 "use client";
 
+import { useObjectUrl } from "../hooks/use-object-url";
+
 import {
   WorkspaceHeader,
   WorkspaceIntro,
-  workspaceSectionClass,
-  workspacePanelClass,
-  workspaceContentClass,
+  Workspace,
 } from "../components/workspace";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { analyzePhoto } from "./analyze-photo";
 import { FontReview } from "./font-review";
 import { PhotoDropZone } from "./photo-drop-zone";
@@ -51,33 +51,11 @@ export function UploadPhotoForm() {
     useState<GeneratedHandwritingFont | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showReplaceFontDialog, setShowReplaceFontDialog] = useState(false);
-  const normalisedPhotoUrl = useMemo(
-    () => (normalisedPhoto ? URL.createObjectURL(normalisedPhoto.blob) : null),
-    [normalisedPhoto],
-  );
-  const generatedFontUrl = useMemo(
-    () => (generatedFont ? URL.createObjectURL(generatedFont.blob) : null),
-    [generatedFont],
-  );
+  const normalisedPhotoUrl = useObjectUrl(normalisedPhoto?.blob);
+  const generatedFontUrl = useObjectUrl(generatedFont?.blob);
   const headerCopy = getUploadHeaderCopy(status, Boolean(sourceFile));
   const processing = isUploadProcessing(status);
   const hasMissingGlyphs = Boolean(generatedFont?.missingLetters.length);
-
-  useEffect(() => {
-    if (!normalisedPhotoUrl) {
-      return;
-    }
-
-    return () => URL.revokeObjectURL(normalisedPhotoUrl);
-  }, [normalisedPhotoUrl]);
-
-  useEffect(() => {
-    if (!generatedFontUrl) {
-      return;
-    }
-
-    return () => URL.revokeObjectURL(generatedFontUrl);
-  }, [generatedFontUrl]);
 
   async function preparePhoto(file: File) {
     const captureMode = captureModeRef.current;
@@ -232,75 +210,10 @@ export function UploadPhotoForm() {
   }
 
   return (
-    <section className={workspaceSectionClass}>
-      <div className={workspacePanelClass}>
-        <div
-          aria-label="Upload workspace"
-          className={workspaceContentClass}
-          role="region"
-          tabIndex={0}
-        >
-          <WorkspaceHeader href="/draw">No paper? Draw it</WorkspaceHeader>
-          <div aria-busy={processing}>
-            <WorkspaceIntro
-              title={headerCopy.title}
-              subtitle={headerCopy.subtitle}
-            />
-
-            {!sourceFile ? (
-              <>
-                <PhotoDropZone
-                  describedById={guidelinesId}
-                  inputId={inputId}
-                  onDrop={handleDrop}
-                />
-                <UploadLimitNotice />
-                <PhotoGuidelines id={guidelinesId} />
-              </>
-            ) : null}
-
-            <input
-              accept="image/*"
-              className="sr-only"
-              id={inputId}
-              onChange={(event) => handleFiles(event.target.files)}
-              ref={inputRef}
-              type="file"
-            />
-
-            {status !== "generated" ? (
-              <UploadState
-                analysis={analysis}
-                error={error}
-                file={sourceFile}
-                normalisedPhoto={normalisedPhoto}
-                onChangePhoto={
-                  processing ? undefined : () => inputRef.current?.click()
-                }
-                photoPreviewUrl={normalisedPhotoUrl}
-                status={status}
-              />
-            ) : null}
-
-            {status === "generated" && generatedFont && generatedFontUrl ? (
-              <FontReview
-                error={error}
-                generatedFont={generatedFont}
-                fontUrl={generatedFontUrl}
-              />
-            ) : null}
-          </div>
-
-          {showReplaceFontDialog && generatedFont && generatedFontUrl ? (
-            <ReplaceFontDialog
-              fontUrl={generatedFontUrl}
-              generatedFont={generatedFont}
-              onCancel={() => setShowReplaceFontDialog(false)}
-              onConfirm={confirmUploadAnotherPhoto}
-            />
-          ) : null}
-        </div>
-        {sourceFile ? (
+    <Workspace
+      label="Upload workspace"
+      footer={
+        sourceFile ? (
           <UploadActions
             generatedFont={generatedFont}
             generatedFontUrl={generatedFontUrl}
@@ -318,9 +231,69 @@ export function UploadPhotoForm() {
             }
             status={status}
           />
+        ) : null
+      }
+    >
+      <WorkspaceHeader href="/draw">No paper? Draw it</WorkspaceHeader>
+      <div aria-busy={processing}>
+        <WorkspaceIntro
+          title={headerCopy.title}
+          subtitle={headerCopy.subtitle}
+        />
+
+        {!sourceFile ? (
+          <>
+            <PhotoDropZone
+              describedById={guidelinesId}
+              inputId={inputId}
+              onDrop={handleDrop}
+            />
+            <UploadLimitNotice />
+            <PhotoGuidelines id={guidelinesId} />
+          </>
+        ) : null}
+
+        <input
+          accept="image/*"
+          className="sr-only"
+          id={inputId}
+          onChange={(event) => handleFiles(event.target.files)}
+          ref={inputRef}
+          type="file"
+        />
+
+        {status !== "generated" ? (
+          <UploadState
+            analysis={analysis}
+            error={error}
+            file={sourceFile}
+            normalisedPhoto={normalisedPhoto}
+            onChangePhoto={
+              processing ? undefined : () => inputRef.current?.click()
+            }
+            photoPreviewUrl={normalisedPhotoUrl}
+            status={status}
+          />
+        ) : null}
+
+        {status === "generated" && generatedFont && generatedFontUrl ? (
+          <FontReview
+            error={error}
+            generatedFont={generatedFont}
+            fontUrl={generatedFontUrl}
+          />
         ) : null}
       </div>
-    </section>
+
+      {showReplaceFontDialog && generatedFont && generatedFontUrl ? (
+        <ReplaceFontDialog
+          fontUrl={generatedFontUrl}
+          generatedFont={generatedFont}
+          onCancel={() => setShowReplaceFontDialog(false)}
+          onConfirm={confirmUploadAnotherPhoto}
+        />
+      ) : null}
+    </Workspace>
   );
 }
 

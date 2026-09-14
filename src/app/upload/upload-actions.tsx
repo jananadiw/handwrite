@@ -1,5 +1,6 @@
+import { FontDownload } from "../components/font-download";
 import { workspaceFooterClass } from "../components/workspace";
-import { ActionButton, actionClass } from "../components/action-button";
+import { ActionButton } from "../components/action-button";
 import type { GeneratedHandwritingFont } from "@/lib/font/generate-handwriting-font";
 import type { NormalisedJpeg } from "@/lib/images/normalise-to-jpeg";
 import { isUploadProcessing } from "./upload-helpers";
@@ -39,28 +40,20 @@ export function UploadActions({
         }`}
       >
         {onSecondaryAction ? (
-          <ActionButton
-            variant="secondary"
-            onClick={onSecondaryAction}
-            type="button"
-          >
+          <ActionButton variant="secondary" onClick={onSecondaryAction}>
             {secondaryActionLabel}
           </ActionButton>
         ) : null}
         {status === "generated" && generatedFont && generatedFontUrl ? (
-          <a
-            className={actionClass("primary")}
-            download={generatedFont.fileName}
-            href={generatedFontUrl}
-          >
-            Download .ttf
-          </a>
+          <FontDownload
+            fileName={generatedFont.fileName}
+            url={generatedFontUrl}
+          />
         ) : (
           <ActionButton
             aria-busy={processing}
             disabled={processing}
             onClick={onPrimaryAction}
-            type="button"
           >
             {getPrimaryActionLabel({ normalisedPhoto, status })}
           </ActionButton>

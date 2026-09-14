@@ -3,11 +3,11 @@ import type { ReactNode } from "react";
 
 export const workspacePageClass =
   "paper-grid h-dvh overflow-hidden overscroll-none px-4 py-6 text-ink sm:px-8 sm:py-10";
-export const workspacePanelClass =
+const workspacePanelClass =
   "flex max-h-full w-full flex-col bg-stone/95 shadow-[0_18px_50px_rgba(43,38,34,0.08)] ring-1 ring-ink/[0.06] backdrop-blur-[2px]";
-export const workspaceContentClass =
+const workspaceContentClass =
   "min-h-0 w-full overflow-x-hidden overflow-y-auto overscroll-y-contain px-5 py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-inset sm:px-8 sm:py-7";
-export const workspaceSectionClass =
+const workspaceSectionClass =
   "mx-auto flex h-full min-h-0 w-full max-w-[680px] items-start justify-center";
 
 export function WorkspaceHeader({
@@ -59,3 +59,31 @@ export function WorkspaceIntro({
 
 export const workspaceFooterClass =
   "shrink-0 bg-stone px-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-8 sm:pb-7";
+
+export function Workspace({
+  label,
+  children,
+  footer,
+  contentClassName = "",
+}: {
+  label: string;
+  children: ReactNode;
+  footer?: ReactNode;
+  contentClassName?: string;
+}) {
+  return (
+    <section className={workspaceSectionClass}>
+      <div className={workspacePanelClass}>
+        <div
+          aria-label={label}
+          className={`${workspaceContentClass} ${contentClassName}`}
+          role="region"
+          tabIndex={0}
+        >
+          {children}
+        </div>
+        {footer}
+      </div>
+    </section>
+  );
+}
