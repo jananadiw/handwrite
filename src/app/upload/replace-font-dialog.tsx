@@ -1,3 +1,4 @@
+import { actionClass } from "../components/action-button";
 import type { GeneratedHandwritingFont } from "@/lib/font/generate-handwriting-font";
 
 const dialogActionFocusClass =
@@ -40,14 +41,14 @@ export function ReplaceFontDialog({
 
         <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_1fr]">
           <a
-            className={`flex h-12 items-center justify-center bg-button px-4 text-sm font-medium text-button-foreground hover:bg-button-hover ${dialogActionFocusClass}`}
+            className={actionClass("primary")}
             download={generatedFont.fileName}
             href={fontUrl}
           >
             Download .ttf
           </a>
           <button
-            className={`flex h-12 items-center justify-center bg-linen px-4 text-sm font-medium text-ink hover:bg-periwinkle ${dialogActionFocusClass}`}
+            className={actionClass("secondary")}
             onClick={onConfirm}
             type="button"
           >

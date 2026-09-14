@@ -16,6 +16,7 @@ mock.module("next/link", () => ({
 const { DrawGlyphsForm } = await import("./draw-glyphs-form");
 const { GlyphCanvas } = await import("./glyph-canvas");
 const { GlyphPicker } = await import("./glyph-picker");
+const { LetterChooser } = await import("./letter-chooser");
 const {
   buildDrawnGlyphs,
   canGenerateDrawnFont,
@@ -28,7 +29,6 @@ const {
   getGhostLetterLayout,
   getLetterZone,
   getLetterZoneBand,
-  getLetterZoneCopy,
   isZoneGuide,
 } = await import("./letter-guides");
 
@@ -73,7 +73,7 @@ describe("draw UI DOM output", () => {
 
     expect(html).toContain("Write your letters");
     expect(html).toContain("0 of 52 letters drawn");
-    expect(html).toContain("Generate font");
+    expect(html).toContain("Preview font");
     expect(html).toContain("disabled");
     expect(html).toContain('href="/upload"');
     expect(html).toContain("Use a photo instead");
@@ -87,12 +87,41 @@ describe("draw UI DOM output", () => {
     expect(html).toContain("Next letter");
   });
 
-  test("names the guides that bound the active letter", () => {
+  test("groups drawing instructions in the subtitle and exposes progress", () => {
     const html = renderToStaticMarkup(React.createElement(DrawGlyphsForm));
 
-    expect(html).toContain("Sit A between the cap line and the baseline.");
-    expect(html).toContain("The faded letter shows the size and position");
+    expect(html).toContain(
+      "Draw a few letters with your finger, stylus, or trackpad. Follow the faded guide.",
+    );
+    expect(html.match(/Follow the faded guide\./g)).toHaveLength(1);
+    expect(html).toContain('role="progressbar"');
+    expect(html).toContain('aria-valuenow="0"');
+    expect(html).not.toContain("Sit A between");
+    expect(html).not.toContain("letters fall back");
   });
+
+  test("keeps the alphabet in a closed dialog with drawn-letter status", () => {
+    const html = renderToStaticMarkup(React.createElement(LetterChooser, {
+      activeChar: "B",
+      onSelectChar: () => undefined,
+      strokesByChar: { B: [SAMPLE_STROKE] },
+    }));
+    expect(html).toContain('aria-label="B, drawn"');
+    expect(html).toContain('aria-current="true"');
+    expect(html).toContain("Choose letter");
+    expect(html).toContain("<dialog");
+    expect(html).not.toMatch(/<dialog[^>]*\bopen/);
+  });
+
+  test("removes the collection and renders one set of drawing controls", () => {
+    const html = renderToStaticMarkup(React.createElement(DrawGlyphsForm));
+    expect(html).not.toContain("Your letters");
+    expect(html).not.toContain("Tap to edit");
+    expect((html.match(/<canvas/g) ?? []).length).toBe(1);
+    expect(html).toContain('aria-label="Drawing controls"');
+    expect((html.match(/>Undo</g) ?? []).length).toBe(1);
+  });
+
 });
 
 describe("draw workflow helpers", () => {
@@ -142,9 +171,6 @@ describe("draw workflow helpers", () => {
 describe("letter writing zones", () => {
   test("uppercase spans the cap line to the baseline", () => {
     expect(getLetterZone("A")).toEqual({ bottom: "baseline", top: "capHeight" });
-    expect(getLetterZoneCopy("A")).toBe(
-      "Sit A between the cap line and the baseline.",
-    );
   });
 
   test("plain lowercase spans the x-height to the baseline", () => {

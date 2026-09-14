@@ -56,7 +56,7 @@ function GlyphRow({
       </p>
       <div
         aria-label={`${label} letters`}
-        className="mt-2 grid grid-cols-[repeat(9,minmax(0,1fr))] gap-1.5 sm:grid-cols-[repeat(13,minmax(0,1fr))]"
+        className="mt-2 grid grid-cols-[repeat(5,minmax(0,1fr))] gap-1.5 sm:grid-cols-[repeat(8,minmax(0,1fr))]"
         role="group"
       >
         {chars.map((char) => {

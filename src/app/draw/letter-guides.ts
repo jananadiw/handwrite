@@ -21,14 +21,6 @@ export const GUIDE_LABELS: Record<GuideName, string> = {
   xHeight: "x",
 };
 
-const GUIDE_COPY: Record<GuideName, string> = {
-  ascender: "ascender line",
-  baseline: "baseline",
-  capHeight: "cap line",
-  descender: "descender line",
-  xHeight: "x-height line",
-};
-
 const LOWERCASE_ASCENDERS = new Set(["b", "d", "f", "h", "k", "l", "t"]);
 const LOWERCASE_DESCENDERS = new Set(["f", "g", "j", "p", "q", "y"]);
 
@@ -57,12 +49,6 @@ export function getLetterZoneBand(char: string) {
     bottom: GUIDE_POSITIONS[zone.bottom],
     top: GUIDE_POSITIONS[zone.top],
   };
-}
-
-export function getLetterZoneCopy(char: string) {
-  const zone = getLetterZone(char);
-
-  return `Sit ${char} between the ${GUIDE_COPY[zone.top]} and the ${GUIDE_COPY[zone.bottom]}.`;
 }
 
 export function isZoneGuide(char: string, guide: GuideName) {

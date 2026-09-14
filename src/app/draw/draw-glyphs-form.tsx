@@ -1,20 +1,30 @@
 "use client";
 
-import Link from "next/link";
+import {
+  WorkspaceHeader,
+  WorkspaceIntro,
+  workspaceSectionClass,
+  workspacePanelClass,
+  workspaceContentClass,
+  workspaceFooterClass,
+} from "../components/workspace";
+import { ActionButton, actionClass } from "../components/action-button";
 import { useEffect, useMemo, useState } from "react";
 import { FontReview } from "../upload/font-review";
 import {
   buildDrawnGlyphs,
   canGenerateDrawnFont,
   getDrawHeaderCopy,
+  getDrawnChars,
   getDrawProgressLine,
   getNextUndrawnChar,
   type DrawnStatus,
   type DrawnStrokesByChar,
 } from "./draw-helpers";
+import styles from "./draw-studio.module.css";
 import { GlyphCanvas } from "./glyph-canvas";
-import { GlyphPicker } from "./glyph-picker";
-import { getLetterZoneCopy } from "./letter-guides";
+import { LetterChooser } from "./letter-chooser";
+import { SUPPORTED_GLYPHS } from "@/lib/extraction/constants";
 
 import {
   createDrawnFontSource,
@@ -23,9 +33,6 @@ import {
 } from "@/lib/font/drawn-glyphs";
 import { generateHandwritingFontInWorker } from "@/lib/font/generate-handwriting-font-in-worker";
 import type { GeneratedHandwritingFont } from "@/lib/font/types";
-
-const actionFocusClass =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-2";
 
 export function DrawGlyphsForm() {
   const [activeChar, setActiveChar] = useState<DrawnChar>("A");
@@ -40,6 +47,7 @@ export function DrawGlyphsForm() {
   );
   const headerCopy = getDrawHeaderCopy(status);
   const activeStrokes = strokesByChar[activeChar] ?? [];
+  const drawnCount = getDrawnChars(strokesByChar).length;
   const canGenerate = canGenerateDrawnFont(strokesByChar, status);
 
   useEffect(() => {
@@ -105,153 +113,141 @@ export function DrawGlyphsForm() {
   }
 
   return (
-    <section className="mx-auto flex h-full min-h-0 w-full max-w-[680px] items-start justify-center sm:items-center">
-      <div
-        aria-label="Drawing workspace"
-        className="upload-scroll max-h-full w-full overflow-x-hidden overflow-y-auto overscroll-y-contain bg-stone/95 px-5 py-5 shadow-[0_18px_50px_rgba(43,38,34,0.08)] ring-1 ring-ink/[0.06] backdrop-blur-[2px] sm:px-8 sm:py-7"
-        role="region"
-        tabIndex={0}
-      >
-        <header className="flex items-center justify-between">
-          <Link
-            aria-label="HandWrite home"
-            className="inline-flex min-h-11 items-center font-serif text-xl font-bold italic tracking-[-0.02em] text-title transition-colors hover:text-subtitle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button focus-visible:ring-offset-4"
-            href="/"
-          >
-            HandWrite
-          </Link>
-          <Link
-            className={`min-h-11 text-sm font-medium text-subtitle underline decoration-ink/25 underline-offset-4 transition-colors hover:text-ink ${actionFocusClass}`}
-            href="/upload"
-          >
-            Use a photo instead
-          </Link>
-        </header>
-
-        <div className="mt-8 sm:mt-10">
-          <h1 className="max-w-[600px] font-serif text-[36px] font-bold italic leading-[1.12] tracking-[-0.025em] text-title sm:text-[46px]">
-            {headerCopy.title}
-          </h1>
-          <p className="mt-3 max-w-[480px] text-base leading-7 text-subtitle">
-            {headerCopy.subtitle}
-          </p>
-
+    <section className={workspaceSectionClass}>
+      <div className={workspacePanelClass}>
+        <div
+          aria-label="Drawing workspace"
+          className={`${styles.workspace} ${workspaceContentClass}`}
+          role="region"
+          tabIndex={0}
+        >
+          <WorkspaceHeader href="/upload">Use a photo instead</WorkspaceHeader>
+          <WorkspaceIntro
+            title={headerCopy.title}
+            subtitle={headerCopy.subtitle}
+          />
           {status === "generated" && generatedFont && generatedFontUrl ? (
-            <FontReview
-              error={error}
-              fontUrl={generatedFontUrl}
-              generatedFont={generatedFont}
-            />
-          ) : (
-            <div className="mt-6">
-              <div className="flex items-baseline justify-between gap-4">
-                <p className="text-sm font-medium text-ink">
-                  Drawing{" "}
-                  <span className="font-serif text-lg italic">
-                    {activeChar}
-                  </span>
-                </p>
-                <p className="text-sm font-medium text-muted">
-                  {getDrawProgressLine(strokesByChar)}
-                </p>
-              </div>
-
-              <div className="mt-3 flex justify-center bg-linen/40 p-4">
-                <GlyphCanvas
-                  char={activeChar}
-                  onCommitStroke={commitStroke}
-                  strokes={activeStrokes}
-                />
-              </div>
-
-              <p aria-live="polite" className="mt-3 text-sm leading-6 text-ink">
-                {getLetterZoneCopy(activeChar)}{" "}
-                <span className="text-subtitle">
-                  The faded letter shows the size and position to aim for. Write
-                  it your own way — it disappears once you start.
-                </span>
-              </p>
-
-              <div className="mt-3 grid grid-cols-3 gap-3">
-                <button
-                  className={`flex h-11 items-center justify-center bg-stone text-sm font-medium text-ink ring-1 ring-inset ring-ink/10 transition-colors hover:bg-linen disabled:cursor-not-allowed disabled:text-muted ${actionFocusClass}`}
-                  disabled={activeStrokes.length === 0}
-                  onClick={undoStroke}
-                  type="button"
-                >
-                  Undo
-                </button>
-                <button
-                  className={`flex h-11 items-center justify-center bg-stone text-sm font-medium text-ink ring-1 ring-inset ring-ink/10 transition-colors hover:bg-linen disabled:cursor-not-allowed disabled:text-muted ${actionFocusClass}`}
-                  disabled={activeStrokes.length === 0}
-                  onClick={clearActiveChar}
-                  type="button"
-                >
-                  Clear
-                </button>
-                <button
-                  className={`flex h-11 items-center justify-center bg-stone text-sm font-medium text-ink ring-1 ring-inset ring-ink/10 transition-colors hover:bg-linen ${actionFocusClass}`}
-                  onClick={goToNextChar}
-                  type="button"
-                >
-                  Next letter
-                </button>
-              </div>
-
-              <GlyphPicker
-                activeChar={activeChar}
-                onSelectChar={setActiveChar}
-                strokesByChar={strokesByChar}
+            <>
+              <FontReview
+                error={error}
+                fontUrl={generatedFontUrl}
+                generatedFont={generatedFont}
               />
-
-              <p className="mt-4 text-sm leading-6 text-subtitle">
-                Draw as few or as many letters as you like. Undrawn lowercase
-                letters fall back to your uppercase shapes.
-              </p>
-
-              {error ? (
+              <div className="my-4 grid grid-cols-2 gap-3">
+                <ActionButton
+                  variant="secondary"
+                  onClick={startOver}
+                  type="button"
+                >
+                  Draw again
+                </ActionButton>
+                <a
+                  className={actionClass("primary")}
+                  download={generatedFont.fileName}
+                  href={generatedFontUrl}
+                >
+                  Download .ttf
+                </a>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="mx-auto mt-6 w-full max-w-[min(440px,max(240px,calc(100dvh-540px)))]">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <LetterChooser
+                    activeChar={activeChar}
+                    onSelectChar={setActiveChar}
+                    strokesByChar={strokesByChar}
+                    disabled={status === "generating"}
+                  />
+                  <ActionButton
+                    aria-busy={status === "generating"}
+                    variant="text"
+                    disabled={!canGenerate}
+                    onClick={() => void generateFont()}
+                    type="button"
+                  >
+                    {status === "generating" ? "Preparing…" : "Preview font"}
+                  </ActionButton>
+                </div>
+                <div key={activeChar} className={styles.letterEnter}>
+                  <GlyphCanvas
+                    char={activeChar}
+                    onCommitStroke={commitStroke}
+                    strokes={activeStrokes}
+                  />
+                </div>
+                <div className="mt-3 mb-1 flex items-center gap-3">
+                  <div
+                    aria-label="Letters drawn"
+                    aria-valuemax={SUPPORTED_GLYPHS.length}
+                    aria-valuemin={0}
+                    aria-valuenow={drawnCount}
+                    aria-valuetext={getDrawProgressLine(strokesByChar)}
+                    className="h-0.5 flex-1 overflow-hidden rounded-full bg-ink/10"
+                    role="progressbar"
+                  >
+                    <div
+                      className="h-full origin-left bg-button transition-transform duration-200 ease-out motion-reduce:transition-none"
+                      style={{
+                        transform: `scaleX(${drawnCount / SUPPORTED_GLYPHS.length})`,
+                      }}
+                    />
+                  </div>
+                  <span
+                    aria-hidden="true"
+                    className="text-xs tabular-nums text-subtitle"
+                  >
+                    {drawnCount} / {SUPPORTED_GLYPHS.length}
+                  </span>
+                </div>
+              </div>
+              {error && (
                 <p
                   aria-live="assertive"
-                  className="mt-3 text-sm font-medium leading-5 text-coral"
+                  className="my-3 text-sm leading-5 text-coral"
                   role="alert"
                 >
                   {error}
                 </p>
-              ) : null}
-            </div>
+              )}
+            </>
           )}
         </div>
-
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          {status === "generated" && generatedFont && generatedFontUrl ? (
-            <>
-              <button
-                className={`flex h-14 items-center justify-center bg-stone text-sm font-medium text-ink ring-1 ring-inset ring-ink/10 transition-colors hover:bg-linen ${actionFocusClass}`}
-                onClick={startOver}
+        {status !== "generated" && (
+          <div
+            aria-label="Drawing controls"
+            className={workspaceFooterClass}
+            role="group"
+          >
+            <div className="mx-auto grid w-full max-w-[min(440px,max(240px,calc(100dvh-540px)))] grid-cols-[1fr_1fr_1.5fr] gap-3">
+              <ActionButton
+                variant="secondary"
+                disabled={activeStrokes.length === 0 || status === "generating"}
+                onClick={undoStroke}
                 type="button"
               >
-                Draw again
-              </button>
-              <a
-                className={`flex h-14 items-center justify-center bg-button text-sm font-semibold text-button-foreground shadow-[0_8px_24px_rgba(43,38,34,0.08)] transition-colors hover:bg-button-hover ${actionFocusClass}`}
-                download={generatedFont.fileName}
-                href={generatedFontUrl}
+                Undo
+              </ActionButton>
+              <ActionButton
+                variant="secondary"
+                disabled={activeStrokes.length === 0 || status === "generating"}
+                onClick={clearActiveChar}
+                type="button"
               >
-                Download .ttf
-              </a>
-            </>
-          ) : (
-            <button
-              aria-busy={status === "generating"}
-              className={`flex h-14 items-center justify-center bg-button text-sm font-semibold text-button-foreground shadow-[0_8px_24px_rgba(43,38,34,0.08)] transition-colors hover:bg-button-hover disabled:cursor-not-allowed disabled:bg-muted disabled:shadow-none sm:col-start-2 ${actionFocusClass}`}
-              disabled={!canGenerate}
-              onClick={() => void generateFont()}
-              type="button"
-            >
-              {status === "generating" ? "Generating" : "Generate font"}
-            </button>
-          )}
-        </div>
+                Clear
+              </ActionButton>
+              <ActionButton
+                variant="primary"
+                disabled={status === "generating"}
+                onClick={goToNextChar}
+                type="button"
+              >
+                Next letter
+              </ActionButton>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

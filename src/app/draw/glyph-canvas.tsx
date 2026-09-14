@@ -89,9 +89,7 @@ export function GlyphCanvas({
       context.fillText(GUIDE_LABELS[guide], 4, y);
     }
 
-    if (strokes.length === 0) {
-      paintGhostLetter({ band, char, context });
-    }
+    paintGhostLetter({ band, char, context });
 
     context.fillStyle = "#111111";
     context.strokeStyle = "#111111";
@@ -165,7 +163,7 @@ export function GlyphCanvas({
   return (
     <canvas
       aria-label={`Drawing area for the letter ${char}`}
-      className="aspect-square w-full max-w-[340px] touch-none bg-white ring-1 ring-ink/12"
+      className="aspect-square w-full touch-none bg-white ring-1 ring-ink/10"
       height={CANVAS_SIZE}
       onPointerCancel={handlePointerUp}
       onPointerDown={handlePointerDown}
