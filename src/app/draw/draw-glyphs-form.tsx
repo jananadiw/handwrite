@@ -253,7 +253,7 @@ export function DrawGlyphsForm() {
               onClick={goToNextChar}
               type="button"
             >
-              Next letter <span aria-hidden="true">→</span>
+              Next letter
             </button>
           </div>
         )}
