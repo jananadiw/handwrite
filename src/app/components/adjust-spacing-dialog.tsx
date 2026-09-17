@@ -26,6 +26,8 @@ const FOCUSABLE_ELEMENT_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 const DOWNLOAD_ERROR_MESSAGE =
   "We couldn't prepare the adjusted font. Try again.";
+const PREVIEW_ERROR_MESSAGE =
+  "We couldn't update the spacing preview. Try moving the slider again.";
 
 type AdjustedPreview = {
   familyName: string;
@@ -99,6 +101,7 @@ export function AdjustSpacingDialog({
   const dialogRef = useRef<HTMLElement>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const adjustedLabel = adjustedPreview
     ? `ADJUSTED · ${formatLetterSpacingEm(adjustedPreview.letterSpacingEm)}`
     : "ADJUSTED";
@@ -109,28 +112,35 @@ export function AdjustSpacingDialog({
     let cancelled = false;
 
     async function buildAdjustedPreview() {
-      const adjustedBlob = await adjustFontLetterSpacing(fontBlob, {
-        letterSpacingEm,
-      });
+      try {
+        const adjustedBlob = await adjustFontLetterSpacing(fontBlob, {
+          letterSpacingEm,
+        });
 
-      if (cancelled) {
-        return;
+        if (cancelled) {
+          return;
+        }
+
+        const url = URL.createObjectURL(adjustedBlob);
+
+        if (adjustedUrlRef.current) {
+          URL.revokeObjectURL(adjustedUrlRef.current);
+        }
+
+        adjustedUrlRef.current = url;
+        setAdjustedPreview({
+          // A fresh family name per setting stops the browser reusing the
+          // previously loaded face for an identical name.
+          familyName: `${adjustedFamily}-${letterSpacingEm.toFixed(2)}`,
+          letterSpacingEm,
+          url,
+        });
+        setPreviewError(null);
+      } catch {
+        if (!cancelled) {
+          setPreviewError(PREVIEW_ERROR_MESSAGE);
+        }
       }
-
-      const url = URL.createObjectURL(adjustedBlob);
-
-      if (adjustedUrlRef.current) {
-        URL.revokeObjectURL(adjustedUrlRef.current);
-      }
-
-      adjustedUrlRef.current = url;
-      setAdjustedPreview({
-        // A fresh family name per setting stops the browser reusing the
-        // previously loaded face for an identical name.
-        familyName: `${adjustedFamily}-${letterSpacingEm.toFixed(2)}`,
-        letterSpacingEm,
-        url,
-      });
     }
 
     const timer = setTimeout(() => void buildAdjustedPreview(), PREVIEW_DEBOUNCE_MS);
@@ -280,6 +290,16 @@ export function AdjustSpacingDialog({
               text={spacingPreview.text}
             />
           </div>
+
+          {previewError ? (
+            <p
+              aria-live="assertive"
+              className="mt-3 text-sm font-medium leading-5 text-coral"
+              role="alert"
+            >
+              {previewError}
+            </p>
+          ) : null}
 
           {spacingPreview.notice ? (
             <p className="mt-3 text-sm leading-5 text-muted">
