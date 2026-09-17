@@ -12,6 +12,7 @@ import { ActionButton, actionClass } from "../components/action-button";
 import { useEffect, useMemo, useState } from "react";
 import { FontReview } from "../upload/font-review";
 import {
+  areAllLettersDrawn,
   buildDrawnGlyphs,
   canGenerateDrawnFont,
   getDrawHeaderCopy,
@@ -48,6 +49,7 @@ export function DrawGlyphsForm() {
   const headerCopy = getDrawHeaderCopy(status);
   const activeStrokes = strokesByChar[activeChar] ?? [];
   const drawnCount = getDrawnChars(strokesByChar).length;
+  const allLettersDrawn = areAllLettersDrawn(strokesByChar);
   const canGenerate = canGenerateDrawnFont(strokesByChar, status);
 
   useEffect(() => {
@@ -220,31 +222,63 @@ export function DrawGlyphsForm() {
             className={workspaceFooterClass}
             role="group"
           >
-            <div className="mx-auto grid w-full max-w-[min(440px,max(240px,calc(100dvh-540px)))] grid-cols-[1fr_1fr_1.5fr] gap-3">
-              <ActionButton
-                variant="secondary"
-                disabled={activeStrokes.length === 0 || status === "generating"}
-                onClick={undoStroke}
-                type="button"
-              >
-                Undo
-              </ActionButton>
-              <ActionButton
-                variant="secondary"
-                disabled={activeStrokes.length === 0 || status === "generating"}
-                onClick={clearActiveChar}
-                type="button"
-              >
-                Clear
-              </ActionButton>
-              <ActionButton
-                variant="primary"
-                disabled={status === "generating"}
-                onClick={goToNextChar}
-                type="button"
-              >
-                Next letter
-              </ActionButton>
+            <div
+              className={`mx-auto grid w-full max-w-[min(440px,max(240px,calc(100dvh-540px)))] gap-3 ${
+                allLettersDrawn ? "grid-cols-2" : "grid-cols-[1fr_1fr_1.5fr]"
+              }`}
+            >
+              {allLettersDrawn ? (
+                <>
+                  <ActionButton
+                    variant="secondary"
+                    disabled={status === "generating"}
+                    onClick={startOver}
+                    type="button"
+                  >
+                    Redraw
+                  </ActionButton>
+                  <ActionButton
+                    aria-busy={status === "generating"}
+                    variant="primary"
+                    disabled={status === "generating"}
+                    onClick={() => void generateFont()}
+                    type="button"
+                  >
+                    {status === "generating" ? "Preparing…" : "Generate font"}
+                  </ActionButton>
+                </>
+              ) : (
+                <>
+                  <ActionButton
+                    variant="secondary"
+                    disabled={
+                      activeStrokes.length === 0 || status === "generating"
+                    }
+                    onClick={undoStroke}
+                    type="button"
+                  >
+                    Undo
+                  </ActionButton>
+                  <ActionButton
+                    variant="secondary"
+                    disabled={
+                      activeStrokes.length === 0 || status === "generating"
+                    }
+                    onClick={clearActiveChar}
+                    type="button"
+                  >
+                    Clear
+                  </ActionButton>
+                  <ActionButton
+                    variant="primary"
+                    disabled={status === "generating"}
+                    onClick={goToNextChar}
+                    type="button"
+                  >
+                    Next letter
+                  </ActionButton>
+                </>
+              )}
             </div>
           </div>
         )}

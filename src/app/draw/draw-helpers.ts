@@ -49,6 +49,10 @@ export function getDrawProgressLine(strokesByChar: DrawnStrokesByChar) {
   return `${drawnCount} of ${SUPPORTED_GLYPHS.length} letters drawn`;
 }
 
+export function areAllLettersDrawn(strokesByChar: DrawnStrokesByChar) {
+  return getDrawnChars(strokesByChar).length === SUPPORTED_GLYPHS.length;
+}
+
 export function getDrawHeaderCopy(status: DrawnStatus) {
   if (status === "generated") {
     return {

@@ -20,6 +20,7 @@ const { LetterChooser } = await import("./letter-chooser");
 const {
   buildDrawnGlyphs,
   canGenerateDrawnFont,
+  areAllLettersDrawn,
   getDrawHeaderCopy,
   getDrawnChars,
   getDrawProgressLine,
@@ -160,6 +161,19 @@ describe("draw workflow helpers", () => {
     expect(canGenerateDrawnFont({ A: [SAMPLE_STROKE] }, "generating")).toBe(
       false,
     );
+  });
+
+  test("knows when every supported letter has ink", () => {
+    expect(areAllLettersDrawn({})).toBe(false);
+    expect(areAllLettersDrawn({ A: [SAMPLE_STROKE] })).toBe(false);
+
+    const everyLetterDrawn = Object.fromEntries(
+      [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"].map(
+        (char) => [char, [SAMPLE_STROKE]],
+      ),
+    );
+
+    expect(areAllLettersDrawn(everyLetterDrawn)).toBe(true);
   });
 
   test("switches header copy once a font exists", () => {
