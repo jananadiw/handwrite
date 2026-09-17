@@ -24,12 +24,58 @@ const dialogActionFocusClass =
 const PREVIEW_DEBOUNCE_MS = 120;
 const FOCUSABLE_ELEMENT_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const DOWNLOAD_ERROR_MESSAGE =
+  "We couldn't prepare the adjusted font. Try again.";
 
 type AdjustedPreview = {
   familyName: string;
   letterSpacingEm: number;
   url: string;
 };
+
+type DownloadLink = Pick<HTMLAnchorElement, "click" | "download" | "href">;
+
+type AdjustedFontDownloadDependencies = {
+  adjustFont: typeof adjustFontLetterSpacing;
+  createLink: () => DownloadLink;
+  createObjectUrl: (blob: Blob) => string;
+  revokeObjectUrl: (url: string) => void;
+  scheduleRevoke: (callback: () => void) => void;
+};
+
+const browserDownloadDependencies: AdjustedFontDownloadDependencies = {
+  adjustFont: adjustFontLetterSpacing,
+  createLink: () => document.createElement("a"),
+  createObjectUrl: (blob) => URL.createObjectURL(blob),
+  revokeObjectUrl: (url) => URL.revokeObjectURL(url),
+  scheduleRevoke: (callback) => void window.setTimeout(callback, 0),
+};
+
+export async function downloadAdjustedFont(
+  {
+    fileName,
+    fontBlob,
+    letterSpacingEm,
+  }: {
+    fileName: string;
+    fontBlob: Blob;
+    letterSpacingEm: number;
+  },
+  dependencies: AdjustedFontDownloadDependencies = browserDownloadDependencies,
+) {
+  const adjustedBlob = await dependencies.adjustFont(fontBlob, {
+    letterSpacingEm,
+  });
+  const downloadUrl = dependencies.createObjectUrl(adjustedBlob);
+  const link = dependencies.createLink();
+
+  link.href = downloadUrl;
+  link.download = fileName.replace(/\.ttf$/i, "-adjusted.ttf");
+  link.click();
+  dependencies.scheduleRevoke(() =>
+    dependencies.revokeObjectUrl(downloadUrl),
+  );
+}
 
 export function AdjustSpacingDialog({
   generatedFont,
@@ -51,6 +97,7 @@ export function AdjustSpacingDialog({
   const adjustedUrlRef = useRef<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLElement>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const adjustedLabel = adjustedPreview
     ? `ADJUSTED · ${formatLetterSpacingEm(adjustedPreview.letterSpacingEm)}`
@@ -147,22 +194,16 @@ export function AdjustSpacingDialog({
 
   async function handleDownload() {
     setIsDownloading(true);
+    setDownloadError(null);
 
     try {
-      const adjustedBlob = await adjustFontLetterSpacing(fontBlob, {
+      await downloadAdjustedFont({
+        fileName: generatedFont.fileName,
+        fontBlob,
         letterSpacingEm,
       });
-      const downloadUrl = URL.createObjectURL(adjustedBlob);
-      const link = document.createElement("a");
-      const adjustedFileName = generatedFont.fileName.replace(
-        /\.ttf$/i,
-        "-adjusted.ttf",
-      );
-
-      link.href = downloadUrl;
-      link.download = adjustedFileName;
-      link.click();
-      URL.revokeObjectURL(downloadUrl);
+    } catch {
+      setDownloadError(DOWNLOAD_ERROR_MESSAGE);
     } finally {
       setIsDownloading(false);
     }
@@ -278,20 +319,31 @@ export function AdjustSpacingDialog({
           </div>
         </div>
 
-        <div className="flex flex-col-reverse gap-3 border-t border-ink/8 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
-          <ActionButton variant="secondary" onClick={onClose} type="button">
-            Cancel
-          </ActionButton>
-          <button
-            aria-busy={isDownloading}
-            className={`${actionClass("primary")} sm:min-w-[220px]`}
-            disabled={isDownloading}
-            onClick={() => void handleDownload()}
-            type="button"
-          >
-            <span aria-hidden="true">↓</span>
-            {isDownloading ? "Preparing…" : "Download adjusted TTF"}
-          </button>
+        <div className="border-t border-ink/8">
+          {downloadError ? (
+            <p
+              aria-live="assertive"
+              className="px-5 pt-4 text-sm font-medium leading-5 text-coral sm:px-6"
+              role="alert"
+            >
+              {downloadError}
+            </p>
+          ) : null}
+          <div className="flex flex-col-reverse gap-3 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+            <ActionButton variant="secondary" onClick={onClose} type="button">
+              Cancel
+            </ActionButton>
+            <button
+              aria-busy={isDownloading}
+              className={`${actionClass("primary")} sm:min-w-[220px]`}
+              disabled={isDownloading}
+              onClick={() => void handleDownload()}
+              type="button"
+            >
+              <span aria-hidden="true">↓</span>
+              {isDownloading ? "Preparing…" : "Download adjusted TTF"}
+            </button>
+          </div>
         </div>
       </section>
     </div>

@@ -13,7 +13,7 @@ mock.module("next/link", () => ({
   }) => React.createElement("a", { href, ...props }, children),
 }));
 
-const { DrawGlyphsForm } = await import("./draw-glyphs-form");
+const { DrawGlyphsForm, DrawingControls } = await import("./draw-glyphs-form");
 const { GlyphCanvas } = await import("./glyph-canvas");
 const { GlyphPicker } = await import("./glyph-picker");
 const { LetterChooser } = await import("./letter-chooser");
@@ -88,6 +88,26 @@ describe("draw UI DOM output", () => {
     expect(html).toContain("Next letter");
   });
 
+  test("keeps edit controls available when every letter is drawn", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DrawingControls, {
+        activeStrokes: [SAMPLE_STROKE],
+        allLettersDrawn: true,
+        onClear: () => undefined,
+        onGenerate: async () => undefined,
+        onNext: () => undefined,
+        onUndo: () => undefined,
+        status: "drawing",
+      }),
+    );
+
+    expect(html).toContain("Undo");
+    expect(html).toContain("Clear");
+    expect(html).toContain("Preview font");
+    expect(html).not.toContain("Next letter");
+    expect(html).not.toContain("Generate font");
+  });
+
   test("groups drawing instructions in the subtitle and exposes progress", () => {
     const html = renderToStaticMarkup(React.createElement(DrawGlyphsForm));
 
@@ -122,7 +142,6 @@ describe("draw UI DOM output", () => {
     expect(html).toContain('aria-label="Drawing controls"');
     expect((html.match(/>Undo</g) ?? []).length).toBe(1);
   });
-
 });
 
 describe("draw workflow helpers", () => {

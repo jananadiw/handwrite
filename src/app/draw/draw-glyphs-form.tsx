@@ -162,15 +162,28 @@ export function DrawGlyphsForm() {
                     strokesByChar={strokesByChar}
                     disabled={status === "generating"}
                   />
-                  <ActionButton
-                    aria-busy={status === "generating"}
-                    variant="text"
-                    disabled={!canGenerate}
-                    onClick={() => void generateFont()}
-                    type="button"
-                  >
-                    {status === "generating" ? "Preparing…" : "Preview font"}
-                  </ActionButton>
+                  {allLettersDrawn ? (
+                    <ActionButton
+                      variant="text"
+                      disabled={status === "generating"}
+                      onClick={startOver}
+                      type="button"
+                    >
+                      Redraw all
+                    </ActionButton>
+                  ) : (
+                    <ActionButton
+                      aria-busy={status === "generating"}
+                      variant="text"
+                      disabled={!canGenerate}
+                      onClick={() => void generateFont()}
+                      type="button"
+                    >
+                      {status === "generating"
+                        ? "Preparing…"
+                        : "Preview font"}
+                    </ActionButton>
+                  )}
                 </div>
                 <div key={activeChar} className={styles.letterEnter}>
                   <GlyphCanvas
@@ -217,72 +230,84 @@ export function DrawGlyphsForm() {
           )}
         </div>
         {status !== "generated" && (
-          <div
-            aria-label="Drawing controls"
-            className={workspaceFooterClass}
-            role="group"
-          >
-            <div
-              className={`mx-auto grid w-full max-w-[min(440px,max(240px,calc(100dvh-540px)))] gap-3 ${
-                allLettersDrawn ? "grid-cols-2" : "grid-cols-[1fr_1fr_1.5fr]"
-              }`}
-            >
-              {allLettersDrawn ? (
-                <>
-                  <ActionButton
-                    variant="secondary"
-                    disabled={status === "generating"}
-                    onClick={startOver}
-                    type="button"
-                  >
-                    Redraw
-                  </ActionButton>
-                  <ActionButton
-                    aria-busy={status === "generating"}
-                    variant="primary"
-                    disabled={status === "generating"}
-                    onClick={() => void generateFont()}
-                    type="button"
-                  >
-                    {status === "generating" ? "Preparing…" : "Generate font"}
-                  </ActionButton>
-                </>
-              ) : (
-                <>
-                  <ActionButton
-                    variant="secondary"
-                    disabled={
-                      activeStrokes.length === 0 || status === "generating"
-                    }
-                    onClick={undoStroke}
-                    type="button"
-                  >
-                    Undo
-                  </ActionButton>
-                  <ActionButton
-                    variant="secondary"
-                    disabled={
-                      activeStrokes.length === 0 || status === "generating"
-                    }
-                    onClick={clearActiveChar}
-                    type="button"
-                  >
-                    Clear
-                  </ActionButton>
-                  <ActionButton
-                    variant="primary"
-                    disabled={status === "generating"}
-                    onClick={goToNextChar}
-                    type="button"
-                  >
-                    Next letter
-                  </ActionButton>
-                </>
-              )}
-            </div>
-          </div>
+          <DrawingControls
+            activeStrokes={activeStrokes}
+            allLettersDrawn={allLettersDrawn}
+            onClear={clearActiveChar}
+            onGenerate={generateFont}
+            onNext={goToNextChar}
+            onUndo={undoStroke}
+            status={status}
+          />
         )}
       </div>
     </section>
+  );
+}
+
+export function DrawingControls({
+  activeStrokes,
+  allLettersDrawn,
+  onClear,
+  onGenerate,
+  onNext,
+  onUndo,
+  status,
+}: {
+  activeStrokes: DrawnStroke[];
+  allLettersDrawn: boolean;
+  onClear: () => void;
+  onGenerate: () => Promise<void>;
+  onNext: () => void;
+  onUndo: () => void;
+  status: DrawnStatus;
+}) {
+  const isGenerating = status === "generating";
+
+  return (
+    <div
+      aria-label="Drawing controls"
+      className={workspaceFooterClass}
+      role="group"
+    >
+      <div className="mx-auto grid w-full max-w-[min(440px,max(240px,calc(100dvh-540px)))] grid-cols-[1fr_1fr_1.5fr] gap-3">
+        <ActionButton
+          variant="secondary"
+          disabled={activeStrokes.length === 0 || isGenerating}
+          onClick={onUndo}
+          type="button"
+        >
+          Undo
+        </ActionButton>
+        <ActionButton
+          variant="secondary"
+          disabled={activeStrokes.length === 0 || isGenerating}
+          onClick={onClear}
+          type="button"
+        >
+          Clear
+        </ActionButton>
+        {allLettersDrawn ? (
+          <ActionButton
+            aria-busy={isGenerating}
+            variant="primary"
+            disabled={isGenerating}
+            onClick={() => void onGenerate()}
+            type="button"
+          >
+            {isGenerating ? "Preparing…" : "Preview font"}
+          </ActionButton>
+        ) : (
+          <ActionButton
+            variant="primary"
+            disabled={isGenerating}
+            onClick={onNext}
+            type="button"
+          >
+            Next letter
+          </ActionButton>
+        )}
+      </div>
+    </div>
   );
 }
