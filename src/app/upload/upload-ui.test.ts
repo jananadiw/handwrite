@@ -11,9 +11,11 @@ import {
   DEFAULT_PREVIEW_TEXT,
   getPreviewDisplayText,
   getPreviewFallbackNotice,
+  getSpacingPreview,
   getUnsupportedPreviewCharacters,
   normalisePreviewText,
   PREVIEW_TEXT_MAX_LENGTH,
+  SPACING_PREVIEW_TEXT,
 } from "./font-preview-text";
 import { PhotoDropZone } from "./photo-drop-zone";
 import {
@@ -344,6 +346,7 @@ describe("upload UI DOM output", () => {
     );
 
     expect(html).toContain("Type anything to see it in your handwriting.");
+    expect(html).toContain("Adjust spacing");
     expect(html).toContain("Preview your own words");
     expect(html).toContain("<label");
     expect(html).toContain(`maxLength="${PREVIEW_TEXT_MAX_LENGTH}"`);
@@ -511,5 +514,40 @@ describe("font preview text helpers", () => {
     expect(getPreviewFallbackNotice(["1", "!"])).toContain(
       "Not in your font yet: 1 !",
     );
+  });
+});
+
+describe("spacing preview sample", () => {
+  const EVERY_LETTER = [
+    ..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+  ];
+
+  test("uses the pangram when the font renders every sample letter", () => {
+    const preview = getSpacingPreview(EVERY_LETTER);
+
+    expect(preview.text).toBe(SPACING_PREVIEW_TEXT);
+    expect(preview.notice).toBeNull();
+  });
+
+  test("previews only the letters an incomplete font contains", () => {
+    const preview = getSpacingPreview(["a", "C", "b", "A"]);
+
+    expect(preview.text).toBe("ACab");
+    expect(preview.notice).toContain("4 letters in your font");
+  });
+
+  test("groups longer samples so adjacent letters stay readable", () => {
+    const preview = getSpacingPreview([..."ABCDEFGHI"]);
+
+    expect(preview.text).toBe("ABCDEF GHI");
+  });
+
+  test("keeps the notice singular for a one-letter font", () => {
+    expect(getSpacingPreview(["A"]).notice).toContain("1 letter in your font");
+  });
+
+  test("repeats a tiny font's letters so spacing has a visible gap", () => {
+    expect(getSpacingPreview(["A"]).text).toBe("AAAA");
+    expect(getSpacingPreview(["A", "b"]).text).toBe("AbAb");
   });
 });
