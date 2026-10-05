@@ -14,6 +14,7 @@
     --color-sky: #8EB8D8;
     --color-sage: #A7BC9A;
     --color-ink: #2B2622;
+    --color-ink-hover: #1a1715;
     --color-stone: #fffefa;
     --color-primary: var(--color-sage);
     --color-indigo: var(--color-primary);
@@ -28,6 +29,7 @@
     --color-foreground: var(--color-ink);
     --font-sans: var(--font-work-sans);
     --font-serif: var(--font-libre-baskerville);
+    --font-handwrite: "New HandWrite", cursive;
 }
 
 .paper-grid {
@@ -178,6 +180,11 @@
 @media (prefers-reduced-motion: reduce) {
     .font-result-reveal {
         animation: none;
+    }
+
+    .primary-button:active,
+    .quiet-button:active {
+        transform: none !important;
     }
 }
 
